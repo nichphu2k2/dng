@@ -1,0 +1,10 @@
+.alert-blink {
+  animation: blink 0.8s infinite;
+  filter: drop-shadow(0 0 6px red);
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}

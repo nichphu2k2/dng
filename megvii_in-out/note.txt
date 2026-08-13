@@ -1,0 +1,14 @@
+### Install Server
+
+Đối với OS ubuntu: sh 1.setup.sh
+
+Đối với OS Windows:
+    + Mở PowerShell với quyền Administrator
+    + certutil -generateSSTFromWU roots.sst
+    + certutil -addstore -f root roots.sst
+    + wsl --install
+    + wsl --version
+
+
+### Web
+http://<ip host>

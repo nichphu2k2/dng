@@ -1,0 +1,37 @@
+api: yes
+apiAddress: :9997
+
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    permissions:
+      - action: api
+      - action: read
+      - action: playback
+      - action: publish
+
+rtmp: yes
+rtmpAddress: :1935
+
+rtsp: yes
+rtspAddress: :8554
+
+hls: yes
+hlsAddress: :8888
+
+webrtc: yes
+webrtcAddress: :8889
+
+webrtcAdditionalHosts:
+  - 192.168.1.10
+
+paths:
+  screen01:
+    source: publisher
+
+  screen02:
+    source: publisher
+
+  screen03:
+    source: publisher

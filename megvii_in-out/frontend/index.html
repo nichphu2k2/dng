@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNG Solution</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page">
+        <header class="page-header">
+            <h1>DNG Solution</h1>
+            <button id="toggle-view" type="button">Lịch sử</button>
+        </header>
+
+        <main>
+            <section id="day-section" class="card">
+                <h2>Báo cáo ngày</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Camera</th>
+                                <th>Vào</th>
+                                <th>Ra</th>
+                            </tr>
+                        </thead>
+                        <tbody id="day-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="summary-section" class="card hidden">
+                <button id="back-button" class="back-button" type="button">Báo cáo ngày</button>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Tổng Vào</th>
+                                <th>Tổng Ra</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

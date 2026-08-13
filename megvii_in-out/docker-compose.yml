@@ -1,0 +1,61 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: megvii-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: megvii
+      MYSQL_DATABASE: megvii
+      MYSQL_USER: megvii
+      MYSQL_PASSWORD: megvii
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-umegvii", "-pmegvii"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+      start_period: 300s
+    networks:
+      - megvii-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: megvii-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: megvii
+      MYSQL_USER: megvii
+      MYSQL_PASSWORD: megvii
+
+    networks:
+      - megvii-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: megvii-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - megvii-net
+
+networks:
+  megvii-net:
+    driver: bridge

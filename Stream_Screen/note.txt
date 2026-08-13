@@ -1,0 +1,49 @@
+#### Install OBS
+
+Add sources > Display Capture > Properties > 
+    + Capture Method    : DXGI Desktop Duplication
+    + Display           : Chọn màn cần streaming
+    + Capture Cursor    : Chọn
+    + Force SDR         : Chọn
+
+
+Settings > Stream > Service (Custom...) > Destination >
+    + Server            : rtmp://192.168.1.10:1935
+    + Stream Key        : screen01
+
+
+Settings > Output > Output Mode (Advanced) > Streaming >
+    + Streaming Settings:
+        - Audio Track       : 1
+        - Audio Encoder     : FFmpeg AAC
+        - Video Encoder     : x264
+        - Rescale Output    : Disabled && 1920x1080
+
+    + Encoder Settings:
+        - Rate Control                          : CBR
+        - Bitrate                               : 3000Kbps
+        - Use Custom Buffer Size                : Không chọn
+        - Keyframe Interval (0=auto)            : 1 s
+        - CPU Usage Preset (higher = less CPU)  : ultrafast
+        - Profile                               : baseline
+        - Tune                                  : zerolatency
+        - x264 Options (separated by space)     : bframes=0 rc-lookahead=0 sync-lookahead=0 sliced-threads=1
+
+
+Luồng RTSP thêm vào VMS:
+    + rtsp://192.168.1.10:8554/screen01
+    + rtsp://192.168.1.10:8554/screen02
+    + rtsp://192.168.1.10:8554/screen03
+
+
+### Install Server
+
+Đối với OS ubuntu: sh 1.setup.sh
+
+Đối với OS Windows:
+    + Mở PowerShell với quyền Administrator
+    + certutil -generateSSTFromWU roots.sst
+    + certutil -addstore -f root roots.sst
+    + wsl --install
+    + wsl --version
+
