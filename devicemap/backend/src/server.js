@@ -7,6 +7,7 @@ const sequelize = require("./config/database");
 const socket = require("./config/socket");
 const reportService = require("./modules/report/report.service");
 const mediaMtxService = require("./services/mediaMtx.service");
+const nxService = require("./services/nx.service");
 const authService = require("./modules/auth/auth.service");
 
 // Load all models and associations
@@ -138,6 +139,8 @@ sequelize.authenticate()
     });
 
     startAlarmTimeoutWorker();
+    nxService.startWorkers();
+    console.log("✓ NX Server sync workers started");
   })
   .catch((err) => {
     console.log("❌ Database connection failed");

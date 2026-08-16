@@ -16,8 +16,8 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-udevicemap", "-pdevicemap"]
       interval: 10s
-      timeout: 10s
-      retries: 60
+      timeout: 5s
+      retries: 30
       start_period: 300s
     networks:
       - devicemap-net

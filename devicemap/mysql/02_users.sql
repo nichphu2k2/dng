@@ -19,4 +19,4 @@ CREATE TABLE `users` (
   KEY `idx_users_role` (`role`),
   KEY `idx_users_status` (`status`),
   KEY `idx_users_username_status` (`username`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

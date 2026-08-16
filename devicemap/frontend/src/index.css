@@ -45,9 +45,14 @@ a {
   transition: none;
 }
 
-.sidebar.collapsed {
-  padding-inline: 10px;
+.sidebar.hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border-right: none !important;
+  overflow: hidden;
 }
+
 
 .sidebar-header,
 .sidebar-footer {
@@ -316,9 +321,9 @@ body.theme-dark .menu-group.active .menu-group-toggle {
 .topbar-center {
   flex: 2;
   text-align: center;
-  font-size: 1rem;
+  font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: #38a3e5;
   letter-spacing: 0.02em;
 }
 
@@ -786,4 +791,19 @@ body.theme-dark .main-content {
     50%, 100% {
         opacity: 1;
     }
+}
+
+.user-name {
+  font-size: 13px;
+  color: #334155;
+}
+
+.theme-dark .user-name {
+  color: #f1f5f9;
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
 }

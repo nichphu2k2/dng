@@ -62,7 +62,7 @@ const sidebarSections = [
       </svg>
     ),
     items: [
-      { label: "Loại thiết bị", to: "/device-types" },
+      // { label: "Loại thiết bị", to: "/device-types" },
       { label: "Thiết bị", to: "/devices" },
       { label: "Mặt phẳng", to: "/planes" }
     ]
@@ -95,6 +95,7 @@ const sidebarSections = [
     items: [
       { label: "Thiết lập cảnh báo", to: "/settings/alert-setup" },
       { label: "Thông số đường cảnh báo", to: "/settings/line-parameters" },
+      { label: "Network Optix", to: "/settings/nx" },
       { label: "Người dùng", to: "/settings/users" }
     ]
   }
@@ -225,7 +226,25 @@ export default function MainLayout() {
   }, [colorMode]);
 
   const toggleGroup = (key) => {
-    setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpandedGroups((prev) => {
+      const isCurrentlyExpanded = Boolean(prev[key]);
+
+      if (isCurrentlyExpanded) {
+        return {
+          ...prev,
+          [key]: false
+        };
+      }
+
+      const nextState = {};
+      sidebarSections.forEach((section) => {
+        if (section.type === "group") {
+          nextState[section.key] = section.key === key;
+        }
+      });
+
+      return nextState;
+    });
   };
 
   const visibleSections = useMemo(() => {
@@ -317,8 +336,8 @@ export default function MainLayout() {
   return (
     <div className="app-shell">
       <aside
-        className={`sidebar ${collapsed ? "collapsed" : ""}`}
-        style={{ width: collapsed ? 88 : sidebarWidth }}
+        className={`sidebar ${collapsed ? "hidden" : ""}`}
+        style={{ width: collapsed ? 0 : sidebarWidth }}
       >
         <div className="sidebar-header">
           <div className="brand-mark">
@@ -394,7 +413,12 @@ export default function MainLayout() {
         </div>
       </aside>
 
-      <div className="sidebar-resizer" onMouseDown={() => setResizing(true)} />
+      {!collapsed && (
+        <div
+          className="sidebar-resizer"
+          onMouseDown={() => setResizing(true)}
+        />
+      )}
 
       <div className="main-panel">
         <header className="topbar">
@@ -414,7 +438,7 @@ export default function MainLayout() {
             <Avatar src={authUser?.avatar_url ? getFileUrl(authUser.avatar_url) : undefined}>
               {String(authUser?.username || "U")[0]}
             </Avatar>
-            <span style={{ fontSize: 13, color: "#334155" }}>{authUser?.full_name || authUser?.username || ""}</span>
+            <span className="user-name">{authUser?.full_name || authUser?.username || ""}</span>
             <Button size="small" onClick={handleLogout}>Logout</Button>
           </div>
         </header>
@@ -429,7 +453,11 @@ export default function MainLayout() {
               <path d="M15 17H5l1-2v-4a5 5 0 1 1 10 0v4l1 2Z" />
               <path d="M10 19a2 2 0 0 0 4 0" />
             </svg>
-            <span className="badge">{alerts.length}</span>
+            
+            {alerts.length > 0 && (
+              <span className="badge">{alerts.length}</span>
+            )}
+
           </button>
         </div>
 

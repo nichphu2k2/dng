@@ -665,12 +665,12 @@ const buildPdfBuffer = async ({ title, rows }) => {
     plane_name: "Tên mặt phẳng",
     plane_id: "ID mặt phẳng",
     state_label: "Trạng thái",
-    time_start: "Thời gian bắt đầu",
-    time_end: "Thời gian kết thúc",
+    time_start: "Bắt đầu cảnh báo",
+    time_end: "Kết thúc cảnh báo",
     confirmed_by_name: "Người xác nhận",
-    confirmed_at: "Thời gian xác nhận",
+    // confirmed_at: "Thời gian xác nhận",
     description: "Nội dung cảnh báo",
-    user_id: "Người phụ trách",
+    // user_id: "Người phụ trách",
     id: "ID",
     name: "Tên",
     model: "Model",
@@ -758,12 +758,12 @@ const exportHistoryExcel = async (query = {}) => {
       { header: "Tên mặt phẳng", key: "plane_name", width: 24 },
       { header: "ID mặt phẳng", key: "plane_id", width: 14 },
       { header: "Trạng thái", key: "state_label", width: 16 },
-      { header: "Thời gian bắt đầu", key: "time_start", width: 18 },
-      { header: "Thời gian kết thúc", key: "time_end", width: 18 },
+      { header: "Bắt đầu cảnh báo", key: "time_start", width: 18 },
+      { header: "Kết thúc cảnh báo", key: "time_end", width: 18 },
       { header: "Người xác nhận", key: "confirmed_by_name", width: 20 },
-      { header: "Thời gian xác nhận", key: "confirmed_at", width: 20 },
-      { header: "Nội dung cảnh báo", key: "description", width: 36 },
-      { header: "Người phụ trách", key: "user_id", width: 16 }
+      // { header: "Thời gian xác nhận", key: "confirmed_at", width: 20 },
+      { header: "Nội dung cảnh báo", key: "description", width: 36 }
+      // { header: "Người phụ trách", key: "user_id", width: 16 }
     ],
     rows
   });

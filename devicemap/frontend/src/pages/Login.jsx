@@ -49,7 +49,7 @@ export default function Login() {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        background: "linear-gradient(135deg, #d9f99d 0%, #bae6fd 100%)",
+        background: "linear-gradient(135deg, rgb(221 225 211) 0%, rgb(138 165 179) 100%)",
         padding: 20
       }}
     >
@@ -58,7 +58,7 @@ export default function Login() {
           Đăng nhập
         </Typography.Title>
         <Typography.Paragraph type="secondary" style={{ marginTop: 0 }}>
-          DeviceMap RBAC
+          Vui lòng nhập thông tin để tiếp tục.
         </Typography.Paragraph>
 
         {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}

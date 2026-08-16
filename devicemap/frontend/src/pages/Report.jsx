@@ -182,9 +182,9 @@ export default function Report() {
           <Button type="primary">Xuất Excel</Button>
         </Dropdown>
 
-        <Dropdown menu={pdfMenu} trigger={["click"]}>
+        {/* <Dropdown menu={pdfMenu} trigger={["click"]}>
           <Button>Xuất PDF</Button>
-        </Dropdown>
+        </Dropdown> */}
       </Space>
 
       <Table
@@ -197,16 +197,16 @@ export default function Report() {
           pageSize: pagination.pageSize,
           total: pagination.total,
           showSizeChanger: true,
-          showTotal: (total) => `Tổng ${total} bản ghi`
+          showTotal: (total) => `${total} Cảnh báo`
         }}
         onChange={(nextPagination) => {
           loadReports(nextPagination.current, nextPagination.pageSize);
         }}
         columns={[
           { title: "STT", dataIndex: "stt", width: 70 },
-          { title: "Tên Camera", dataIndex: "camera_name" },
-          { title: "ID Camera", dataIndex: "camera_id", width: 110 },
-          { title: "Tên mặt phẳng", dataIndex: "plane_name" },
+          { title: "Tên thiết bị", dataIndex: "camera_name", width: 120 },
+          { title: "ID thiết bị", dataIndex: "camera_id", width: 120 },
+          { title: "Tên mặt phẳng", dataIndex: "plane_name", width: 120 },
           { title: "ID mặt phẳng", dataIndex: "plane_id", width: 120 },
           {
             title: "Trạng thái",
@@ -214,12 +214,12 @@ export default function Report() {
             width: 140,
             render: (value, row) => row.state_label || mapStateLabel(value)
           },
-          { title: "Thời gian bắt đầu", dataIndex: "time_start", width: 160 },
-          { title: "Thời gian kết thúc", dataIndex: "time_end", width: 160 },
+          { title: "Bắt đầu cảnh báo", dataIndex: "time_start", width: 160 },
+          { title: "Kết thúc cảnh báo", dataIndex: "time_end", width: 160 },
           { title: "Người xác nhận", dataIndex: "confirmed_by_name", width: 160 },
-          { title: "Thời gian xác nhận", dataIndex: "confirmed_at", width: 180 },
-          { title: "Nội dung cảnh báo", dataIndex: "description", width: 220 },
-          { title: "Người phụ trách", dataIndex: "user_id", width: 140 }
+          // { title: "Thời gian xác nhận", dataIndex: "confirmed_at", width: 180 },
+          { title: "Nội dung cảnh báo", dataIndex: "description" }
+          // { title: "Người phụ trách", dataIndex: "user_id", width: 140 }
         ]}
       />
     </div>

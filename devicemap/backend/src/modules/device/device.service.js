@@ -758,4 +758,5 @@ module.exports = {
   getByCodeAndTriggerAlert,
   getAffectedDevices,
   getAffectedLines,
+  saveDeviceIconFile,
 };

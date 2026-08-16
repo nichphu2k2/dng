@@ -167,14 +167,14 @@ export default function DeviceForm({
       <Form form={form} layout="vertical">
         <Row gutter={12}>
           <Col xs={24} md={8}>
-            <Form.Item name="id" label="Device ID" rules={[{ required: true }]}>
+            <Form.Item name="id" label="ID" rules={[{ required: true }]}>
               <Input readOnly />
             </Form.Item>
           </Col>
           <Col xs={24} md={16}>
             <Form.Item
               name="name"
-              label="Device Name"
+              label="Tên thiết bị"
               rules={[{ required: true, message: "Vui lòng nhập tên thiết bị" }]}
             >
               <Input />
@@ -184,7 +184,7 @@ export default function DeviceForm({
 
         <Form.Item
           name="deviceTypeId"
-          label="Device Type"
+          label="Loại thiết bị"
           rules={[{ required: true, message: "Vui lòng chọn loại thiết bị" }]}
         >
           <Select options={deviceTypeOptions} />
@@ -239,7 +239,7 @@ export default function DeviceForm({
         </Form.Item>
 
         {linkEnabled && (
-          <Form.Item name="linkDeviceIds" label="Chọn Device liên kết theo thứ tự click">
+          <Form.Item name="linkDeviceIds" label="Chọn thiết bị liên kết theo thứ tự click">
             <Select
               mode="multiple"
               options={deviceOptions}
@@ -250,7 +250,7 @@ export default function DeviceForm({
 
         <Row gutter={12}>
           <Col xs={24} md={10}>
-            <Form.Item label="Upload Icon">
+            <Form.Item label="Tải ảnh thiết bị">
               <Upload
                 beforeUpload={beforeUpload}
                 maxCount={2}
@@ -268,17 +268,17 @@ export default function DeviceForm({
                 }}
               >
                 <Button type="default" icon={<UploadOutlined />}>
-                  Tải tối đa 2 icon
+                  Tải tối đa 2 ảnh
                 </Button>
               </Upload>
             </Form.Item>
           </Col>
 
           <Col xs={24} md={14}>
-            <Form.Item label="Preview Icon">
+            <Form.Item label="Xem trước ảnh">
               <Row gutter={12}>
                 <Col span={12}>
-                  <div style={{ marginBottom: 6, color: "#666" }}>Icon 1</div>
+                  <div style={{ marginBottom: 6, color: "#666" }}>Ảnh 1</div>
                   <div
                     style={{
                       width: "100%",
@@ -300,13 +300,13 @@ export default function DeviceForm({
                   </div>
                   {previewBySlot.slot1 && (
                     <Button style={{ marginTop: 8 }} onClick={() => removeSlot(1)}>
-                      Xóa icon 1
+                      Xóa ảnh 1
                     </Button>
                   )}
                 </Col>
 
                 <Col span={12}>
-                  <div style={{ marginBottom: 6, color: "#666" }}>Icon 2</div>
+                  <div style={{ marginBottom: 6, color: "#666" }}>Ảnh 2</div>
                   <div
                     style={{
                       width: "100%",
@@ -328,7 +328,7 @@ export default function DeviceForm({
                   </div>
                   {previewBySlot.slot2 && (
                     <Button style={{ marginTop: 8 }} onClick={() => removeSlot(2)}>
-                      Xóa icon 2
+                      Xóa ảnh 2
                     </Button>
                   )}
                 </Col>
@@ -337,7 +337,7 @@ export default function DeviceForm({
           </Col>
         </Row>
 
-        <Form.Item name="description" label="Description">
+        <Form.Item name="description" label="Mô tả">
           <Input.TextArea autoSize={{ minRows: 2 }} />
         </Form.Item>
       </Form>

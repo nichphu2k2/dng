@@ -17,4 +17,4 @@ CREATE TABLE `monitors` (
   KEY `monitors_device_id` (`device_id`),
   CONSTRAINT `fk_monitors_device` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_monitors_plane` FOREIGN KEY (`plane_id`) REFERENCES `planes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=249 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

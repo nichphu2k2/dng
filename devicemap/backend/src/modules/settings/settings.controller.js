@@ -48,10 +48,30 @@ const refreshRtsp = async (req, res) => {
   }
 };
 
+const getNxSettings = async (req, res) => {
+  try {
+    const data = await service.getNxSettings();
+    res.json(data);
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
+};
+
+const updateNxSettings = async (req, res) => {
+  try {
+    const data = await service.updateNxSettings(req.body || {});
+    res.json(data);
+  } catch (err) {
+    res.status(err.status || 400).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getLineParameters,
   updateLineParameters,
   getAlertSetup,
   updateAlertSetup,
-  refreshRtsp
+  refreshRtsp,
+  getNxSettings,
+  updateNxSettings
 };

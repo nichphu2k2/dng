@@ -6,6 +6,12 @@ export const getLineParameters = () =>
 export const updateLineParameters = (payload) =>
   axios.put("/api/settings/line-parameters", payload);
 
+export const getNetworkOptixSettings = () =>
+  axios.get("/api/settings/nx");
+
+export const updateNetworkOptixSettings = (payload) =>
+  axios.put("/api/settings/nx", payload);
+
 export const getAlertSetup = () =>
   axios.get("/api/settings/alert-setup");
 

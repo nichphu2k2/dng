@@ -15,6 +15,7 @@ const OPERATOR_ROUTES = new Set([
 const ADMIN_ONLY_ROUTES = new Set([
   "/settings/alert-setup",
   "/settings/line-parameters",
+  "/settings/nx",
   "/settings/users"
 ]);
 

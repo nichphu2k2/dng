@@ -5,23 +5,26 @@ import SortableTableHeader, { compareText, compareThreeDigitId } from "./Sortabl
 export default function DeviceList({ dataSource, onEdit, onDelete }) {
   const columns = [
     {
-      title: <SortableTableHeader title="Device ID" />,
+      title: <SortableTableHeader title="ID" />,
       dataIndex: "id",
+      width: 50,
       sorter: (left, right) => compareThreeDigitId(left.id, right.id)
     },
     {
-      title: <SortableTableHeader title="Device Name" />,
+      title: <SortableTableHeader title="Tên thiết bị" />,
       dataIndex: "name",
       sorter: (left, right) => compareText(left.name, right.name)
     },
     {
-      title: <SortableTableHeader title="Device Type" />,
+      title: <SortableTableHeader title="Loại thiết bị" />,
       dataIndex: "deviceTypeName",
+      width: 150,
       sorter: (left, right) => compareText(left.deviceTypeName, right.deviceTypeName)
     },
     {
-      title: <SortableTableHeader title="Status" />,
+      title: <SortableTableHeader title="Trạng thái" />,
       dataIndex: "status",
+      width: 150,
       align: "center",
       render: (value) => (
         <div className="device-status-dot">
@@ -30,22 +33,24 @@ export default function DeviceList({ dataSource, onEdit, onDelete }) {
       )
     },
     {
-      title: "Pair",
+      title: "Ghép đôi",
       dataIndex: "pair",
+      width: 120,
       render: (_, record) => (Number(record.pair || 0) > 0 ? `${record.pair} / ${record.pairId}` : "-")
     },
     {
-      title: "Link",
+      title: "Liên kết",
       dataIndex: "link",
+      width: 120,
       render: (value) => (Number(value || 0) > 0 ? value : "-")
     },
     {
-      title: <SortableTableHeader title="Description" />,
+      title: <SortableTableHeader title="Mô tả" />,
       dataIndex: "description",
       sorter: (left, right) => compareText(left.description, right.description)
     },
     {
-      title: "Action",
+      title: "Hành động",
       width: 120,
       render: (_, record) => (
         <Space>
@@ -70,7 +75,7 @@ export default function DeviceList({ dataSource, onEdit, onDelete }) {
       rowKey="rawId"
       dataSource={dataSource}
       columns={columns}
-      scroll={{ x: 1400 }}
+      scroll={{ x: 700 }}
       pagination={{ pageSize: 10 }}
     />
   );

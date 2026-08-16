@@ -21,6 +21,7 @@ import Login from "../pages/Login";
 import NoPermission from "../pages/NoPermission";
 import UserManagement from "../pages/UserManagement";
 import ChangePassword from "../pages/ChangePassword";
+import NetworkOptixSettings from "../pages/NetworkOptixSettings";
 
 export default function Router() {
   return (
@@ -41,6 +42,7 @@ export default function Router() {
           <Route path="/planes" element={<ProtectedRoute allowedRoles={["ADMIN", "OPERATOR"]}><PlaneManagement /></ProtectedRoute>} />
           <Route path="/settings/alert-setup" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AlertSetupSettings /></ProtectedRoute>} />
           <Route path="/settings/line-parameters" element={<ProtectedRoute allowedRoles={["ADMIN"]}><LineParametersSettings /></ProtectedRoute>} />
+          <Route path="/settings/nx" element={<ProtectedRoute allowedRoles={["ADMIN"]}><NetworkOptixSettings /></ProtectedRoute>} />
           <Route path="/settings/users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><UserManagement /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Report /></ProtectedRoute>} />
         </Route>

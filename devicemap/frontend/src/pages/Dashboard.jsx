@@ -104,12 +104,9 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <section className="page-hero">
         <div>
-          <p className="eyebrow">Dashboard</p>
-          <h1>Tổng quan hệ thống</h1>
-          <p>Thống kê dữ liệu thiết bị, cảnh báo và mặt phẳng từ cơ sở dữ liệu hiện tại.</p>
+          <h1>Tổng quan</h1>
         </div>
         <div className="hero-badge">
-          <span className="hero-badge-title">Alerts Timeline</span>
           <Segmented
             value={interval}
             options={[
@@ -123,30 +120,30 @@ export default function Dashboard() {
 
       <div className="widget-grid">
         <div className="stat-card green">
-          <span className="stat-label">Tổng thiết bị hoạt động / Tổng thiết bị</span>
+          <span className="stat-label">Tổng thiết bị</span>
           <strong className="stat-value">{`${data.device.active}/${data.device.total}`}</strong>
         </div>
         <div className="stat-card blue">
-          <span className="stat-label">Camera hoạt động / Tổng số Camera</span>
+          <span className="stat-label">Camera</span>
           <strong className="stat-value">{`${data.camera.active}/${data.camera.total}`}</strong>
         </div>
         <div className="stat-card red">
-          <span className="stat-label">Sensor hoạt động / Tổng Sensor</span>
+          <span className="stat-label">Sensor</span>
           <strong className="stat-value">{`${data.sensor.active}/${data.sensor.total}`}</strong>
         </div>
         <div className="stat-card purple">
-          <span className="stat-label">Tổng số mặt phẳng</span>
+          <span className="stat-label">Mặt phẳng</span>
           <strong className="stat-value">{data.planes.total}</strong>
         </div>
       </div>
 
       <div className="content-grid">
         <div className="info-card">
-          <h3>Biểu đồ cảnh báo</h3>
+          <h3>Biểu đồ thống kê</h3>
           <svg width="100%" viewBox="0 0 760 260" role="img" aria-label="Alert chart">
             <rect x="0" y="0" width="760" height="260" rx="14" fill="#F8FAFC" />
-            <line x1="40" y1="220" x2="740" y2="220" stroke="#CBD5E1" strokeWidth="1" />
-            <line x1="40" y1="24" x2="40" y2="220" stroke="#CBD5E1" strokeWidth="1" />
+            <line x1="40" y1="220" x2="740" y2="220" stroke="#262b30" strokeWidth="2" />
+            <line x1="40" y1="24" x2="40" y2="220" stroke="#262b30" strokeWidth="2" />
 
             {polylinePoints && (
               <polyline
@@ -158,7 +155,7 @@ export default function Dashboard() {
                   })
                   .join(" ")}
                 fill="none"
-                stroke="#2563EB"
+                stroke="#4f7fe8"
                 strokeWidth="3"
               />
             )}
@@ -179,7 +176,7 @@ export default function Dashboard() {
         </div>
 
         <div className="info-card">
-          <h3>Tỷ lệ xử lý cảnh báo</h3>
+          <h3>Số lượng cảnh báo</h3>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 18, height: 220, padding: "16px 8px 0" }}>
             {processBars.map((bar) => (
               <div key={bar.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
@@ -193,7 +190,7 @@ export default function Dashboard() {
                     boxShadow: "0 8px 20px rgba(15, 23, 42, 0.12)"
                   }}
                 />
-                <strong style={{ fontSize: 13 }}>{`${bar.value}/${data.reports.total}`}</strong>
+                <strong style={{ fontSize: 13 }}>{`${bar.value}`}</strong>
                 <span style={{ fontSize: 12, color: "#64748b", textAlign: "center" }}>{bar.label}</span>
               </div>
             ))}

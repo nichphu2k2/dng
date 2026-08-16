@@ -25,15 +25,10 @@ CREATE TABLE `reports` (
   KEY `idx_reports_plane_id` (`plane_id`),
   KEY `idx_reports_user_id` (`user_id`),
   KEY `idx_reports_state` (`state`),
-  KEY `reports_device_id` (`device_id`),
-  KEY `reports_plane_id` (`plane_id`),
-  KEY `reports_user_id` (`user_id`),
-  KEY `reports_state` (`state`),
   KEY `idx_reports_confirmed_by` (`confirmed_by_id`),
-  KEY `reports_confirmed_by_id` (`confirmed_by_id`),
   CONSTRAINT `fk_reports_confirmed_by` FOREIGN KEY (`confirmed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_reports_device` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_reports_plane` FOREIGN KEY (`plane_id`) REFERENCES `planes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_reports_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `chk_reports_state` CHECK ((`state` in (0,1,2)))
-) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

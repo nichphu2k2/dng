@@ -16,4 +16,4 @@ CREATE TABLE `user_sessions` (
   KEY `idx_user_sessions_user_id` (`user_id`),
   KEY `idx_user_sessions_status` (`status`),
   CONSTRAINT `fk_user_sessions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

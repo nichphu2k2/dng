@@ -7,7 +7,7 @@ import getFileUrl from "../utils/fileUrl";
 export default function PlaneList({ dataSource, expandedRowKeys, onExpandedRowsChange, onEdit, onDelete }) {
   const columns = [
     {
-      title: <SortableTableHeader title="Image" />,
+      title: <SortableTableHeader title="Hình ảnh" />,
       dataIndex: "image",
       render: (value) => {
         if (!value) {
@@ -48,7 +48,7 @@ export default function PlaneList({ dataSource, expandedRowKeys, onExpandedRowsC
       sorter: (left, right) => compareText(left.description, right.description)
     },
     {
-      title: "Action",
+      title: "Hành động",
       width: 120,
       render: (_, record) => (
         <Space>

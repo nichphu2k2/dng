@@ -9,8 +9,9 @@ export default function MapList({ dataSource, expandedRowKeys, onExpandedRowsCha
 
   const columns = [
     {
-      title: <SortableTableHeader title="Image" />,
+      title: <SortableTableHeader title="Mặt phẳng" />,
       dataIndex: "image",
+      width: 175,
       render: (value) => {
         if (!value) {
           return null;
@@ -34,7 +35,7 @@ export default function MapList({ dataSource, expandedRowKeys, onExpandedRowsCha
       sorter: (left, right) => compareThreeDigitId(String(left.id), String(right.id))
     },
     {
-      title: <SortableTableHeader title="Tên" />,
+      title: <SortableTableHeader title="Tên mặt phẳng" />,
       dataIndex: "name",
       sorter: (left, right) => compareText(left.name, right.name),
       render: (_, record) => <PlaneTreeRow name={record.name} />
@@ -45,7 +46,7 @@ export default function MapList({ dataSource, expandedRowKeys, onExpandedRowsCha
       sorter: (left, right) => compareText(left.description, right.description)
     },
     {
-      title: "Action",
+      title: "Hành động",
       width: 120,
       render: (_, record) => {
         // Only show Monitor button for Dependence type
@@ -60,7 +61,7 @@ export default function MapList({ dataSource, expandedRowKeys, onExpandedRowsCha
               size="small"
               onClick={() => navigate(`/monitor/${record.id}`)}
             >
-              Monitor
+              Giám sát
             </Button>
           </Space>
         );

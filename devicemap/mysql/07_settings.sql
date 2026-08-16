@@ -9,4 +9,4 @@ CREATE TABLE `settings` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_key` (`setting_key`),
   UNIQUE KEY `settings_setting_key` (`setting_key`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

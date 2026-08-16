@@ -110,14 +110,14 @@ export default function PlaneForm({
       <Form form={form} layout="vertical">
         <Row gutter={12}>
           <Col xs={24} md={10}>
-            <Form.Item name="id" label="Plane ID" rules={[{ required: true }]}>
+            <Form.Item name="id" label="ID" rules={[{ required: true }]}>
               <Input readOnly />
             </Form.Item>
           </Col>
           <Col xs={24} md={14}>
             <Form.Item
               name="name"
-              label="Plane Name"
+              label="Tên mặt phẳng"
               rules={[{ required: true, message: "Vui lòng nhập tên mặt phẳng" }]}
             >
               <Input />
@@ -127,7 +127,7 @@ export default function PlaneForm({
 
         <Form.Item
           name="planeType"
-          label="Plane Type"
+          label="Loại mặt phẳng"
           rules={[{ required: true, message: "Vui lòng chọn loại mặt phẳng" }]}
         >
           <div style={{ display: "flex", gap: 16 }}>
@@ -158,7 +158,7 @@ export default function PlaneForm({
 
             <Row gutter={12}>
               <Col xs={24} md={12}>
-                <Form.Item label="Upload Plane">
+                <Form.Item label="Tải mặt phẳng">
                   <Upload
                     beforeUpload={handleBeforeUpload}
                     maxCount={1}
@@ -170,14 +170,14 @@ export default function PlaneForm({
                     }}
                   >
                     <Button type="default" icon={<UploadOutlined />}>
-                      Tải ảnh
+                      Tải mặt phẳng
                     </Button>
                   </Upload>
                 </Form.Item>
               </Col>
 
               <Col xs={24} md={12}>
-                <Form.Item label={mode === "edit" ? "Current Image" : "Preview Image"}>
+                <Form.Item label={mode === "edit" ? "Current Image" : "Xem trước mặt phẳng"}>
                   <div
                     style={{
                       width: "100%",
@@ -206,7 +206,7 @@ export default function PlaneForm({
 
                   {previewUrl && (
                     <Button style={{ marginTop: 8 }} onClick={handleRemoveImage}>
-                      Xóa ảnh
+                      Xóa mặt phẳng
                     </Button>
                   )}
                 </Form.Item>
@@ -215,7 +215,7 @@ export default function PlaneForm({
           </>
         )}
 
-        <Form.Item name="description" label="Description">
+        <Form.Item name="description" label="Mô tả">
           <TextArea autoSize={{ minRows: 2 }} />
         </Form.Item>
       </Form>

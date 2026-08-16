@@ -3,6 +3,8 @@ const mediaMtxService = require("../../services/mediaMtx.service");
 
 const LINE_PARAMETERS_KEY = "line_parameters";
 const ALERT_SETUP_KEY = "alert_setup";
+const NX_SETTINGS_KEY = "nx_settings";
+const NX_SESSION_KEY = "nx_session";
 
 const LINE_THICKNESS_VALUES = ["thin", "medium", "thick"];
 const TRANSITION_SPEED_VALUES = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -21,6 +23,14 @@ const DEFAULT_ALERT_SETUP = {
   port: 3000,
   processing_time_value: 15,
   processing_time_unit: "minute"
+};
+
+const DEFAULT_NX_SETTINGS = {
+  ip: "",
+  port: 7001,
+  username: "",
+  password: "",
+  sync_enabled: 0
 };
 
 const createServiceError = (status, message) => {
@@ -170,10 +180,96 @@ const refreshRtsp = async () => {
   };
 };
 
+const validateNxSettings = (payload) => {
+  const ip = String(payload.ip || "").trim();
+  if (ip && !/^[a-zA-Z0-9.\-:]+$/.test(ip)) {
+    throw createServiceError(400, "ip must be a valid host/IP");
+  }
+
+  const port = Number(payload.port);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw createServiceError(400, "port must be an integer between 1 and 65535");
+  }
+
+  const username = String(payload.username || "").trim();
+  const password = String(payload.password ?? "");
+  const syncEnabled = [true, "true", 1, "1"].includes(payload.sync_enabled) ? 1 : 0;
+
+  return {
+    ip,
+    port,
+    username,
+    password,
+    sync_enabled: syncEnabled
+  };
+};
+
+// Internal only: includes password, must never be returned to the frontend.
+const getNxSettingsInternal = async () => {
+  return getSettingValue(NX_SETTINGS_KEY, DEFAULT_NX_SETTINGS);
+};
+
+const sanitizeNxSettings = (value) => ({
+  ip: value.ip,
+  port: value.port,
+  username: value.username,
+  sync_enabled: value.sync_enabled ? 1 : 0,
+  has_password: Boolean(value.password)
+});
+
+const getNxSettings = async () => {
+  const value = await getNxSettingsInternal();
+  return sanitizeNxSettings(value);
+};
+
+const updateNxSettings = async (payload) => {
+  const current = await getNxSettingsInternal();
+  const rawPassword = payload?.password;
+  const nextPassword = rawPassword === undefined || rawPassword === null || rawPassword === ""
+    ? current.password
+    : rawPassword;
+
+  const merged = {
+    ...current,
+    ...toSafeObject(payload),
+    password: nextPassword
+  };
+
+  const normalized = validateNxSettings(merged);
+  await upsertSettingValue(NX_SETTINGS_KEY, normalized);
+  return sanitizeNxSettings(normalized);
+};
+
+// Backend-only session cache; never exposed via controller/routes.
+const getNxSessionToken = async () => {
+  const row = await Setting.findOne({ where: { setting_key: NX_SESSION_KEY } });
+  const value = toSafeObject(row?.setting_value);
+  if (!value.token || !value.expires_at) {
+    return null;
+  }
+
+  if (new Date(value.expires_at).getTime() <= Date.now()) {
+    return null;
+  }
+
+  return value.token;
+};
+
+const setNxSessionToken = async (token, expiresInS) => {
+  const safeExpiresInS = Number.isFinite(Number(expiresInS)) ? Math.max(Number(expiresInS), 0) : 0;
+  const expiresAt = new Date(Date.now() + safeExpiresInS * 1000).toISOString();
+  await upsertSettingValue(NX_SESSION_KEY, { token, expires_at: expiresAt });
+};
+
 module.exports = {
   getLineParameters,
   updateLineParameters,
   getAlertSetup,
   updateAlertSetup,
-  refreshRtsp
+  refreshRtsp,
+  getNxSettings,
+  updateNxSettings,
+  getNxSettingsInternal,
+  getNxSessionToken,
+  setNxSessionToken
 };

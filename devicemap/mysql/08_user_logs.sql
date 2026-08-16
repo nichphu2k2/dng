@@ -21,4 +21,4 @@ CREATE TABLE `user_logs` (
   KEY `idx_user_logs_session_id` (`session_id`),
   KEY `idx_user_logs_action` (`action`),
   KEY `idx_user_logs_created_at` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
