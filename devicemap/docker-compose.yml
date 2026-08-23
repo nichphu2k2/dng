@@ -8,6 +8,7 @@ services:
       MYSQL_DATABASE: devicemap
       MYSQL_USER: devicemap
       MYSQL_PASSWORD: devicemap
+    command: --default-time-zone=+07:00
     ports:
       - "3306:3306"
     volumes:
