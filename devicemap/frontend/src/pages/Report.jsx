@@ -214,8 +214,8 @@ export default function Report() {
             width: 140,
             render: (value, row) => row.state_label || mapStateLabel(value)
           },
-          { title: "Bắt đầu cảnh báo", dataIndex: "time_start", width: 160 },
-          { title: "Kết thúc cảnh báo", dataIndex: "time_end", width: 160 },
+          { title: "Bắt đầu cảnh báo", dataIndex: "created_at", width: 160 },
+          { title: "Kết thúc cảnh báo", dataIndex: "updated_at", width: 160 },
           { title: "Người xác nhận", dataIndex: "confirmed_by_name", width: 160 },
           // { title: "Thời gian xác nhận", dataIndex: "confirmed_at", width: 180 },
           { title: "Nội dung cảnh báo", dataIndex: "description" }

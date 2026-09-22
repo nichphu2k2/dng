@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Button, Input, Modal, message } from "antd";
 import { BookOutlined } from "@ant-design/icons";
@@ -8,6 +8,7 @@ import { clearAuthSession, getAuthUser } from "../utils/auth";
 import { canAccessRoute } from "../utils/permissions";
 import getFileUrl from "../utils/fileUrl";
 import { logout } from "../api/auth";
+import { disconnectSocket } from "../socket/socket";
 
 const EXPANDED_GROUPS_STORAGE_KEY = "devicemap.sidebar.expandedGroups";
 const COMPANY_URL = "https://dngcorp.vn/";
@@ -135,6 +136,9 @@ export default function MainLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [resizing, setResizing] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+  const notificationRef = useRef(null);
   const [processing, setProcessing] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [processDescription, setProcessDescription] = useState("");
@@ -177,32 +181,81 @@ export default function MainLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
-  if (previousAlertCount !== null && alerts.length > previousAlertCount) {
-    setNotificationsOpen(true);
-  }
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".user-menu-wrap")) {
+        setUserMenuOpen(false);
+      }
 
-  setPreviousAlertCount(alerts.length);
+      if (
+        !event.target.closest(".notification-button-wrap") &&
+        !event.target.closest(".notification-dropdown-wrap")
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousAlertCount !== null && alerts.length > previousAlertCount) {
+      setNotificationsOpen(true);
+    }
+    setPreviousAlertCount(alerts.length);
   }, [alerts.length]);
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Click ngoài User menu
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setUserMenuOpen(false);
+      }
+
+      // Click ngoài Notification
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
     const activeGroupKeys = sidebarSections
-      .filter((section) => section.type === "group" && isSectionActive(section, location.pathname))
+      .filter(
+        (section) =>
+          section.type === "group" &&
+          isSectionActive(section, location.pathname)
+      )
       .map((section) => section.key);
 
-    if (activeGroupKeys.length === 0) {
-      return;
-    }
-
     setExpandedGroups((prev) => {
-      const nextState = { ...prev };
-      let hasChanged = false;
+      const nextState = {};
 
-      activeGroupKeys.forEach((key) => {
-        if (!nextState[key]) {
-          nextState[key] = true;
-          hasChanged = true;
+      sidebarSections.forEach((section) => {
+        if (section.type === "group") {
+          nextState[section.key] = activeGroupKeys.includes(section.key);
         }
       });
+
+      const hasChanged =
+        Object.keys(nextState).some(
+          (key) => nextState[key] !== Boolean(prev[key])
+        );
 
       return hasChanged ? nextState : prev;
     });
@@ -275,6 +328,7 @@ export default function MainLayout() {
     }
 
     clearAuthSession();
+    disconnectSocket();
     navigate("/login", { replace: true });
   };
 
@@ -434,128 +488,171 @@ export default function MainLayout() {
             DNG - Giải pháp bản đồ số
           </div>
 
-          <div className="topbar-right" style={{ display: "flex", alignItems: "center", gap: 10, marginRight: 100 }}>
-            <Avatar src={authUser?.avatar_url ? getFileUrl(authUser.avatar_url) : undefined}>
-              {String(authUser?.username || "U")[0]}
-            </Avatar>
-            <span className="user-name">{authUser?.full_name || authUser?.username || ""}</span>
-            <Button size="small" onClick={handleLogout}>Logout</Button>
+          <div className="topbar-right">
+            <div className="user-menu-wrap" ref={userMenuRef}>
+              <button
+                className="user-avatar-button"
+                  onClick={() => {
+                    setUserMenuOpen((value) => !value);
+                    setNotificationsOpen(false);
+                  }}
+                aria-label="Thông tin tài khoản"
+              >
+                <Avatar
+                  src={
+                    authUser?.avatar_url
+                      ? getFileUrl(authUser.avatar_url)
+                      : undefined
+                  }
+                >
+                  {String(authUser?.username || "U")[0]}
+                </Avatar>
+              </button>
+
+              {userMenuOpen && (
+                <div className="user-dropdown">
+                  <div className="user-dropdown-name">
+                    {authUser?.full_name || authUser?.username || ""}
+                  </div>
+
+                  <Button size="small" onClick={handleLogout}>
+                    Đăng xuất
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div className="theme-mode-wrap">
+              <button 
+                className="icon-button" 
+                onClick={() => setColorMode((prev) => (prev === "night" ? "dark" : "night"))} 
+                aria-label="Đổi giao diện" 
+                title={colorMode === "night" ? "Sáng" : "Tối"} 
+              >
+                {colorMode === "night" ? ( 
+                  <svg viewBox="0 0 24 24" aria-hidden="true"> 
+                    <circle cx="12" cy="12" r="4" /> 
+                    <path d="M12 2v3" /> 
+                    <path d="M12 19v3" /> 
+                    <path d="M2 12h3" /> 
+                    <path d="M19 12h3" /> 
+                    <path d="m4.93 4.93 2.12 2.12" /> 
+                    <path d="m16.95 16.95 2.12 2.12" /> 
+                    <path d="m4.93 19.07 2.12-2.12" /> 
+                    <path d="m16.95 7.05 2.12-2.12" /> 
+                  </svg> 
+                ) : ( 
+                  <svg viewBox="0 0 24 24" aria-hidden="true"> 
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3c0 0-1.34 7.4 2.18 10.92C16.91 17.44 21 12.79 21 12.79Z" /> 
+                  </svg> 
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
-        <div className="notification-button-wrap">
-          <button
-            className="icon-button"
-            onClick={() => setNotificationsOpen((value) => !value)}
-            aria-label="Notifications"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 17H5l1-2v-4a5 5 0 1 1 10 0v4l1 2Z" />
-              <path d="M10 19a2 2 0 0 0 4 0" />
-            </svg>
-            
-            {alerts.length > 0 && (
-              <span className="badge">{alerts.length}</span>
-            )}
-
-          </button>
-        </div>
-
-        <div className="theme-mode-wrap">
-          <button
-            className="icon-button"
-            onClick={() => setColorMode((prev) => (prev === "night" ? "dark" : "night"))}
-            aria-label="Đổi giao diện"
-            title={colorMode === "night" ? "Night Mode" : "Dark Mode"}
-          >
-            {colorMode === "night" ? (
+        <div
+          className="notification-container"
+          ref={notificationRef}
+        >
+          <div className="notification-button-wrap">
+            <button
+              className="icon-button"
+              onClick={() => {
+                setNotificationsOpen((value) => !value);
+                setUserMenuOpen(false);
+              }}
+              aria-label="Notifications"
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v3" />
-                <path d="M12 19v3" />
-                <path d="M2 12h3" />
-                <path d="M19 12h3" />
-                <path d="m4.93 4.93 2.12 2.12" />
-                <path d="m16.95 16.95 2.12 2.12" />
-                <path d="m4.93 19.07 2.12-2.12" />
-                <path d="m16.95 7.05 2.12-2.12" />
+                <path d="M15 17H5l1-2v-4a5 5 0 1 1 10 0v4l1 2Z" />
+                <path d="M10 19a2 2 0 0 0 4 0" />
               </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3c0 0-1.34 7.4 2.18 10.92C16.91 17.44 21 12.79 21 12.79Z" />
-              </svg>
-            )}
-          </button>
-        </div>
 
-        {notificationsOpen && (
-          <div className="notification-dropdown-wrap">
-            <div className="notification-dropdown">
-              <div className="dropdown-header">Notifications</div>
+              {alerts.length > 0 && (
+                <span className="badge">{alerts.length}</span>
+              )}
+            </button>
+          </div>
 
-              <div className="notification-list">
-                {alerts.length === 0 && (
-                  <div className="dropdown-item">
-                    <strong>Không có cảnh báo</strong>
-                    <span>Danh sách cảnh báo đang trống.</span>
-                  </div>
-                )}
+          {notificationsOpen && (
+            <div className="notification-dropdown-wrap">
+              <div className="notification-dropdown">
+                <div className="dropdown-header">
+                  Thông báo
+                </div>
 
-                {alerts.map((alertItem) => (
-                  <div
-                    key={alertItem.report_id}
-                    className="dropdown-item notification-alert-item"
-                    onClick={() => handleNotificationClick(alertItem)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        handleNotificationClick(alertItem);
-                      }
-                    }}
-                  >
-                    <div className="notification-alert-content">
-                      <strong>{`${alertItem.device_id} | ${alertItem.device_name}`}</strong>
-                      <span>{`${alertItem.plane_id} | ${alertItem.plane_name}`}</span>
+                <div className="notification-list">
+                  {alerts.length === 0 && (
+                    <div className="dropdown-item">
+                      <span>Danh sách cảnh báo đang trống.</span>
                     </div>
+                  )}
 
-                    <button
-                      className="notification-book-btn"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openAlertProcess(alertItem);
+                  {alerts.map((alertItem) => (
+                    <div
+                      key={alertItem.report_id}
+                      className="dropdown-item notification-alert-item"
+                      onClick={() => handleNotificationClick(alertItem)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "Enter" ||
+                          event.key === " "
+                        ) {
+                          event.preventDefault();
+                          handleNotificationClick(alertItem);
+                        }
                       }}
-                      aria-label="Open process panel"
                     >
-                      <BookOutlined />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div className="notification-alert-content">
+                        <strong>
+                          {`${alertItem.device_id} | ${alertItem.device_name}`}
+                        </strong>
 
-              <div className="notification-actions">
-                <Button
-                  size="small"
-                  disabled={alerts.length === 0 || processing}
-                  loading={processing}
-                  onClick={() => submitProcessAll(2)}
-                >
-                  Ignore all
-                </Button>
-                <Button
-                  size="small"
-                  type="primary"
-                  disabled={alerts.length === 0 || processing}
-                  loading={processing}
-                  onClick={() => submitProcessAll(1)}
-                >
-                  Confirm all
-                </Button>
+                        <span>
+                          {`${alertItem.plane_id} | ${alertItem.plane_name}`}
+                        </span>
+                      </div>
+
+                      <button
+                        className="notification-book-btn"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openAlertProcess(alertItem);
+                        }}
+                        aria-label="Open process panel"
+                      >
+                        <BookOutlined />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="notification-actions">
+                  <Button
+                    size="small"
+                    disabled={alerts.length === 0 || processing}
+                    loading={processing}
+                    onClick={() => submitProcessAll(2)}
+                  >
+                    Bỏ qua tất cả
+                  </Button>
+
+                  <Button
+                    size="small"
+                    type="primary"
+                    disabled={alerts.length === 0 || processing}
+                    loading={processing}
+                    onClick={() => submitProcessAll(1)}
+                  >
+                    Xác nhận tất cả
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <main className="main-content">
           <Outlet />
@@ -584,10 +681,10 @@ export default function MainLayout() {
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <Button loading={processing} onClick={() => submitProcess(2)}>
-                Ignore
+                Xác nhận bỏ qua
               </Button>
               <Button type="primary" loading={processing} onClick={() => submitProcess(1)}>
-                Confirm Process
+                Xác nhận xử lý
               </Button>
             </div>
           </div>

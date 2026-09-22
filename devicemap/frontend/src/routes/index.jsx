@@ -22,11 +22,13 @@ import NoPermission from "../pages/NoPermission";
 import UserManagement from "../pages/UserManagement";
 import ChangePassword from "../pages/ChangePassword";
 import NetworkOptixSettings from "../pages/NetworkOptixSettings";
+import AuthSessionManager from "../components/AuthSessionManager";
 
 export default function Router() {
   return (
     <BrowserRouter>
-      <Routes>
+      <AuthSessionManager>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/no-permission" element={<NoPermission />} />
         <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
@@ -47,7 +49,8 @@ export default function Router() {
           <Route path="/reports" element={<ProtectedRoute><Report /></ProtectedRoute>} />
         </Route>
 
-      </Routes>
+        </Routes>
+      </AuthSessionManager>
     </BrowserRouter>
   );
 }

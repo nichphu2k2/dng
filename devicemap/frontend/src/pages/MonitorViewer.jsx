@@ -113,6 +113,10 @@ export default function MonitorViewer() {
 
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 0, height: 0 });
   const [imageDrawRect, setImageDrawRect] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  const DEVICE_ICON_REFERENCE_SIZE = 24;
+  const DEVICE_ICON_REFERENCE_MAP_WIDTH = 870;
+  const DEVICE_ICON_MIN_SIZE = 14;
+  const DEVICE_ICON_MAX_SIZE = 24;
 
   const [draggingPlacementId, setDraggingPlacementId] = useState(null);
   const [lineParameters, setLineParameters] = useState(DEFAULT_LINE_PARAMETERS);
@@ -133,6 +137,29 @@ export default function MonitorViewer() {
   );
 
   const activePlacements = editMode ? draftPlacements : savedPlacements;
+
+  const deviceIconSize = useMemo(() => {
+    const mapWidth = imageDrawRect.width;
+
+    if (mapWidth <= 0) {
+      return DEVICE_ICON_REFERENCE_SIZE;
+    }
+
+    const scale =
+      mapWidth / DEVICE_ICON_REFERENCE_MAP_WIDTH;
+
+    const size =
+      DEVICE_ICON_REFERENCE_SIZE * scale;
+
+    return Math.max(
+      DEVICE_ICON_MIN_SIZE,
+      Math.min(DEVICE_ICON_MAX_SIZE, size)
+    );
+  }, [imageDrawRect.width]);
+
+  const deviceIconContainerSize = useMemo(() => {
+    return deviceIconSize * (34 / 24);
+  }, [deviceIconSize]);
 
   const resolveDeviceType = useCallback((device) => {
     const normalized = String(device?.device_type || device?.type || "").toLowerCase();
@@ -645,6 +672,7 @@ export default function MonitorViewer() {
       setDraftPlacements(normalizedSaved.map((item) => ({ ...item })));
       setDraftDirty(false);
       setSelectedPlacementId(null);
+      setEditMode(false);
 
       // Refresh device status values that are synchronized by backend after monitor save.
       const devicesRes = await getDevices();
@@ -782,16 +810,25 @@ export default function MonitorViewer() {
     });
   }, []);
 
-  const closeLiveView = useCallback((windowId) => {
+  const closeLiveView = useCallback((windowId, options = {}) => {
+    const { rememberDismissed = true } = options;
+
     setCameraWindows((prev) => {
       const target = prev.find((item) => item.id === windowId);
-      if (target?.source === "blink" && target.deviceId) {
+
+      if (
+        rememberDismissed &&
+        target?.source === "blink" &&
+        target.deviceId
+      ) {
         setDismissedBlinkDeviceIds((current) => {
-          if (current.includes(target.deviceId)) {
+          const normalizedDeviceId = String(target.deviceId);
+
+          if (current.includes(normalizedDeviceId)) {
             return current;
           }
 
-          return [...current, target.deviceId];
+          return [...current, normalizedDeviceId];
         });
       }
 
@@ -827,32 +864,53 @@ export default function MonitorViewer() {
   };
 
   useEffect(() => {
-    if (imageDrawRect.width <= 0 || imageDrawRect.height <= 0 || activePlacements.length === 0) {
+    if (
+      imageDrawRect.width <= 0 ||
+      imageDrawRect.height <= 0 ||
+      activePlacements.length === 0
+    ) {
       return;
     }
-
     const flashingCameraIds = [...flashingDeviceIds].filter((deviceId) => {
       const targetDevice = devicesById.get(String(deviceId));
+
       if (!targetDevice) {
         return false;
       }
-
       return resolveDeviceType(targetDevice) === "camera";
     });
 
-    setDismissedBlinkDeviceIds((current) => current.filter((deviceId) => flashingCameraIds.includes(deviceId)));
-
-    flashingCameraIds.forEach((deviceId) => {
-      if (dismissedBlinkDeviceIds.includes(deviceId)) {
+    const flashingCameraIdSet = new Set(
+      flashingCameraIds.map((deviceId) => String(deviceId))
+    );
+    cameraWindows.forEach((windowItem) => {
+      if (windowItem.source !== "blink") {
         return;
       }
+      const deviceId = String(windowItem.deviceId);
 
+      if (!flashingCameraIdSet.has(deviceId)) {
+        closeLiveView(windowItem.id, {
+          rememberDismissed: false
+        });
+      }
+    });
+    setDismissedBlinkDeviceIds((current) =>
+      current.filter((deviceId) =>
+        flashingCameraIdSet.has(String(deviceId))
+      )
+    );
+    flashingCameraIds.forEach((deviceId) => {
+      if (dismissedBlinkDeviceIds.includes(String(deviceId))) {
+        return;
+      }
       const nextStreamName = buildCameraStreamName(deviceId, 2);
-      const alreadyOpen = cameraWindows.some((item) => item.streamName === nextStreamName);
+      const alreadyOpen = cameraWindows.some(
+        (item) => item.streamName === nextStreamName
+      );
       if (alreadyOpen) {
         return;
       }
-
       openLiveView(deviceId, 2, "blink");
     });
   }, [
@@ -862,6 +920,7 @@ export default function MonitorViewer() {
     dismissedBlinkDeviceIds,
     cameraWindows,
     openLiveView,
+    closeLiveView,
     imageDrawRect.width,
     imageDrawRect.height,
     activePlacements.length
@@ -933,8 +992,8 @@ export default function MonitorViewer() {
           position: "absolute",
           left: point.left,
           top: point.top,
-          width: 34,
-          height: 34,
+          width: deviceIconContainerSize,
+          height: deviceIconContainerSize,
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           border: isSelected ? "2px solid #1677ff" : "2px solid rgba(255,255,255,0.9)",
@@ -978,6 +1037,9 @@ export default function MonitorViewer() {
             className={`device-icon-switch ${
               flashing && hasIcon2 ? "flashing" : ""
             }`}
+            style={{
+              "--device-icon-size": `${deviceIconSize}px`
+            }}
           >
             <img
               className="device-icon-primary"
@@ -1147,8 +1209,8 @@ export default function MonitorViewer() {
 
   if (editMode) {
     return (
-      <div style={{ padding: "20px", position: "relative" }}>
-        <div style={{ position: "absolute", top: 20, right: 20, display: "flex", gap: "10px" }}>
+      <div style={{ padding: "1px", position: "relative" }}>
+        <div style={{ position: "absolute", top: 0, right: 20, display: "flex", gap: "10px" }}>
           <Button icon={<EditOutlined />} onClick={exitEditMode}>
             Chỉnh sửa
           </Button>
@@ -1160,7 +1222,7 @@ export default function MonitorViewer() {
           </Button>
         </div>
 
-        <div style={{ display: "flex", gap: "20px", marginTop: "60px" }}>
+        <div style={{ display: "flex", gap: "20px", marginTop: "40px" }}>
           <div style={{ flex: "0 0 66%" }}>
             {renderMonitorCanvas()}
           </div>
@@ -1184,40 +1246,53 @@ export default function MonitorViewer() {
               Xóa thiết bị đã chọn
             </Button>
 
+            {/* ================= CAMERA ================= */}
             <div>
-              <Button
-                block
-                style={{
-                  color: showCameraList ? "#999" : "inherit",
-                  fontWeight: showCameraList ? 500 : 600
-                }}
-                onClick={() => {
-                  setShowCameraList(!showCameraList);
-                  if (showCameraList) {
-                    setCameraSearchText("");
-                  }
-                }}
-              >
-                {showCameraList ? "Tìm kiếm camera" : "Danh sách camera"}
-              </Button>
+              {!showCameraList ? (
+                <Button
+                  block
+                  onClick={() => {
+                    setShowCameraList(true);
+                    setShowSensorList(false);
+                    setSensorSearchText("");
+                  }}
+                >
+                  Danh sách camera
+                </Button>
+              ) : (
+                <Input
+                  autoFocus
+                  block
+                  placeholder="Nhập tên camera..."
+                  value={cameraSearchText}
+                  onChange={(event) => setCameraSearchText(event.target.value)}
+                  allowClear
+                />
+              )}
+
               {showCameraList && (
-                <div style={{ marginTop: "10px", border: "1px solid #ddd", borderRadius: "4px", padding: "10px" }}>
-                  <Input
-                    placeholder="Nhập tên camera..."
-                    value={cameraSearchText}
-                    onChange={(event) => setCameraSearchText(event.target.value)}
-                    allowClear
-                    style={{ marginBottom: "10px" }}
-                  />
+                <div
+                  style={{
+                    marginTop: "10px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "10px"
+                  }}
+                >
                   <div style={{ maxHeight: "132px", overflowY: "auto" }}>
                     {filteredCameras.length > 0 ? (
                       filteredCameras.map((camera) => {
-                        const exists = draftPlacements.some((item) => String(item.device_id) === String(camera.id));
+                        const exists = draftPlacements.some(
+                          (item) => String(item.device_id) === String(camera.id)
+                        );
+
                         return (
                           <div
                             key={camera.id}
                             draggable={!exists}
-                            onDragStart={(event) => onDeviceDragStart(event, camera.id)}
+                            onDragStart={(event) =>
+                              onDeviceDragStart(event, camera.id)
+                            }
                             style={{
                               padding: "8px",
                               cursor: exists ? "not-allowed" : "grab",
@@ -1232,7 +1307,13 @@ export default function MonitorViewer() {
                         );
                       })
                     ) : (
-                      <div style={{ color: "#999", textAlign: "center", padding: "10px" }}>
+                      <div
+                        style={{
+                          color: "#999",
+                          textAlign: "center",
+                          padding: "10px"
+                        }}
+                      >
                         Không tìm thấy camera
                       </div>
                     )}
@@ -1241,40 +1322,54 @@ export default function MonitorViewer() {
               )}
             </div>
 
+
+            {/* ================= SENSOR ================= */}
             <div>
-              <Button
-                block
-                style={{
-                  color: showSensorList ? "#999" : "inherit",
-                  fontWeight: showSensorList ? 500 : 600
-                }}
-                onClick={() => {
-                  setShowSensorList(!showSensorList);
-                  if (showSensorList) {
-                    setSensorSearchText("");
-                  }
-                }}
-              >
-                {showSensorList ? "Tìm kiếm cảm biến" : "Danh sách cảm biến"}
-              </Button>
+              {!showSensorList ? (
+                <Button
+                  block
+                  onClick={() => {
+                    setShowSensorList(true);
+                    setShowCameraList(false);
+                    setCameraSearchText("");
+                  }}
+                >
+                  Danh sách cảm biến
+                </Button>
+              ) : (
+                <Input
+                  autoFocus
+                  block
+                  placeholder="Nhập tên cảm biến..."
+                  value={sensorSearchText}
+                  onChange={(event) => setSensorSearchText(event.target.value)}
+                  allowClear
+                />
+              )}
+
               {showSensorList && (
-                <div style={{ marginTop: "10px", border: "1px solid #ddd", borderRadius: "4px", padding: "10px" }}>
-                  <Input
-                    placeholder="Nhập tên cảm biến..."
-                    value={sensorSearchText}
-                    onChange={(event) => setSensorSearchText(event.target.value)}
-                    allowClear
-                    style={{ marginBottom: "10px" }}
-                  />
+                <div
+                  style={{
+                    marginTop: "10px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "10px"
+                  }}
+                >
                   <div style={{ maxHeight: "132px", overflowY: "auto" }}>
                     {filteredSensors.length > 0 ? (
                       filteredSensors.map((sensor) => {
-                        const exists = draftPlacements.some((item) => String(item.device_id) === String(sensor.id));
+                        const exists = draftPlacements.some(
+                          (item) => String(item.device_id) === String(sensor.id)
+                        );
+
                         return (
                           <div
                             key={sensor.id}
                             draggable={!exists}
-                            onDragStart={(event) => onDeviceDragStart(event, sensor.id)}
+                            onDragStart={(event) =>
+                              onDeviceDragStart(event, sensor.id)
+                            }
                             style={{
                               padding: "8px",
                               cursor: exists ? "not-allowed" : "grab",
@@ -1289,7 +1384,13 @@ export default function MonitorViewer() {
                         );
                       })
                     ) : (
-                      <div style={{ color: "#999", textAlign: "center", padding: "10px" }}>
+                      <div
+                        style={{
+                          color: "#999",
+                          textAlign: "center",
+                          padding: "10px"
+                        }}
+                      >
                         Không tìm thấy cảm biến
                       </div>
                     )}
@@ -1306,8 +1407,8 @@ export default function MonitorViewer() {
   }
 
   return (
-    <div style={{ padding: "20px", position: "relative" }}>
-      <div style={{ position: "absolute", top: 20, right: 20, display: "flex", gap: "10px" }}>
+    <div style={{ padding: "1px", position: "relative" }}>
+      <div style={{ position: "absolute", top: 0, right: 20, display: "flex", gap: "10px" }}>
         <Button icon={<EditOutlined />} onClick={enterEditMode}>
           Chỉnh sửa
         </Button>
@@ -1319,7 +1420,7 @@ export default function MonitorViewer() {
         </Button>
       </div>
 
-      <div style={{ marginTop: "60px" }}>
+      <div style={{ marginTop: "40px" }}>
         {renderMonitorCanvas()}
       </div>
 

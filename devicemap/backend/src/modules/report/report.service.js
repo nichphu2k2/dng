@@ -24,6 +24,29 @@ const buildWhere = (query) => {
   return where;
 };
 
+const toVietnamDateTime = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const vietnamTime = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+
+  const year = vietnamTime.getUTCFullYear();
+  const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(vietnamTime.getUTCDate()).padStart(2, "0");
+  const hour = String(vietnamTime.getUTCHours()).padStart(2, "0");
+  const minute = String(vietnamTime.getUTCMinutes()).padStart(2, "0");
+  const second = String(vietnamTime.getUTCSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+};
+
 const fetchData = async (query) => {
   try {
     return await Device.findAll({
@@ -359,6 +382,8 @@ const updateProcessState = async (reportId, payload = {}, authUser = null) => {
     state: row.state,
     time_start: row.time_start,
     time_end: row.time_end,
+    created_at: row.created_at || "",
+    updated_at: row.updated_at || "",
     device_id: row.device_id,
     plane_id: row.plane_id,
     user_id: row.user_id,
@@ -502,11 +527,17 @@ const listHistoryReports = async (query = {}) => {
     plane_id: row.plane_id || "",
     state: Number(row.state),
     state_label: mapStateLabel(row.state),
+
     time_start: row.time_start || "",
     time_end: row.time_end || "",
+
+    created_at: toVietnamDateTime(row.created_at),
+    updated_at: toVietnamDateTime(row.updated_at),
+
     confirmed_by_id: row.confirmed_by_id || null,
     confirmed_by_name: mapConfirmedByName(row),
     confirmed_at: mapConfirmedAt(row),
+
     description: row.description || "",
     user_id: row.user_full_name || row.username || row.user_id || ""
   }));
@@ -538,6 +569,8 @@ const getHistoryRowsForExport = async (query = {}) => {
     state_label: mapStateLabel(row.state),
     time_start: row.time_start || "",
     time_end: row.time_end || "",
+    created_at: toVietnamDateTime(row.created_at),
+    updated_at: toVietnamDateTime(row.updated_at),
     confirmed_by_name: mapConfirmedByName(row),
     confirmed_at: mapConfirmedAt(row),
     description: row.description || "",
@@ -570,8 +603,8 @@ const getDeviceRowsForExport = async () => {
     link: Number(row.link || 0),
     modbus_label: String(row.modbus || "").trim() ? "Có" : "Không",
     description: row.description || "",
-    created_at: row.created_at,
-    updated_at: row.updated_at
+    created_at: toVietnamDateTime(row.created_at),
+    updated_at: toVietnamDateTime(row.updated_at)
   }));
 };
 
@@ -589,8 +622,8 @@ const getPlaneRowsForExport = async () => {
     type: row.type || "",
     parent_name: row.parent_id ? (planeNameById.get(String(row.parent_id)) || "") : "",
     description: row.description || "",
-    created_at: row.created_at,
-    updated_at: row.updated_at
+    created_at: toVietnamDateTime(row.created_at),
+    updated_at: toVietnamDateTime(row.updated_at)
   }));
 };
 
@@ -631,11 +664,7 @@ const buildExcelBuffer = async ({ sheetName, columns, rows }) => {
 };
 
 const toDisplayDate = (value) => {
-  if (!value) return "";
-  if (value instanceof Date) {
-    return value.toISOString().replace("T", " ").slice(0, 19);
-  }
-  return String(value);
+  return toVietnamDateTime(value);
 };
 
 const buildPdfBuffer = async ({ title, rows }) => {
@@ -758,8 +787,8 @@ const exportHistoryExcel = async (query = {}) => {
       { header: "Tên mặt phẳng", key: "plane_name", width: 24 },
       { header: "ID mặt phẳng", key: "plane_id", width: 14 },
       { header: "Trạng thái", key: "state_label", width: 16 },
-      { header: "Bắt đầu cảnh báo", key: "time_start", width: 18 },
-      { header: "Kết thúc cảnh báo", key: "time_end", width: 18 },
+      { header: "Bắt đầu cảnh báo", key: "created_at", width: 18 },
+      { header: "Kết thúc cảnh báo", key: "updated_at", width: 18 },
       { header: "Người xác nhận", key: "confirmed_by_name", width: 20 },
       // { header: "Thời gian xác nhận", key: "confirmed_at", width: 20 },
       { header: "Nội dung cảnh báo", key: "description", width: 36 }
@@ -795,7 +824,6 @@ const exportDeviceExcel = async () => {
       { header: "STT", key: "stt", width: 8 },
       { header: "ID Thiết bị", key: "id", width: 12 },
       { header: "Tên thiết bị", key: "name", width: 24 },
-      { header: "Model", key: "model", width: 24 },
       { header: "Loại thiết bị", key: "device_type", width: 14 },
       { header: "Trạng thái", key: "status_label", width: 24 },
       { header: "Luồng Mainstream", key: "rtsp1_label", width: 14 },

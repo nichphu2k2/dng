@@ -26,6 +26,7 @@ api.interceptors.response.use(
     const status = error?.response?.status;
     if (status === 401) {
       clearAuthSession();
+      window.dispatchEvent(new CustomEvent("devicemap:auth-invalid", { detail: { reason: "session_invalid" } }));
     }
 
     return Promise.reject(error);

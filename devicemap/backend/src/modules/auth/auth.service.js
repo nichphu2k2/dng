@@ -8,8 +8,9 @@ const {
   logoutSessionByToken
 } = require("./auth-session-log.service");
 
-const JWT_SECRET = process.env.JWT_SECRET || "devicemap-secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_REMEMBER_ME_EXPIRES_IN = process.env.JWT_REMEMBER_ME_EXPIRES_IN || JWT_EXPIRES_IN;
 const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$.{53}$/;
 
 const toPublicUser = (row) => {
@@ -29,7 +30,7 @@ const toPublicUser = (row) => {
   };
 };
 
-const createToken = (user) => {
+const createToken = (user, rememberMe = false) => {
   return jwt.sign(
     {
       id: user.id,
@@ -37,7 +38,7 @@ const createToken = (user) => {
       role: user.role
     },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: rememberMe ? JWT_REMEMBER_ME_EXPIRES_IN : JWT_EXPIRES_IN }
   );
 };
 
@@ -92,7 +93,7 @@ const ensureDefaultAdmin = async () => {
   }
 };
 
-const login = async ({ username, password, ipAddress = null, userAgent = null }) => {
+const login = async ({ username, password, rememberMe = false, ipAddress = null, userAgent = null }) => {
   const normalizedUsername = String(username || "").trim();
   const rawPassword = String(password || "");
 
@@ -123,7 +124,7 @@ const login = async ({ username, password, ipAddress = null, userAgent = null })
     throw error;
   }
 
-  await invalidateActiveSessionsByUserId({
+  const invalidatedSessions = await invalidateActiveSessionsByUserId({
     userId: user.id,
     nextStatus: "EXPIRED",
     targetUser: user,
@@ -134,7 +135,7 @@ const login = async ({ username, password, ipAddress = null, userAgent = null })
     writeLogs: true
   });
 
-  const token = createToken(user);
+  const token = createToken(user, Boolean(rememberMe));
   const session = await createUserSession({
     userId: user.id,
     sessionToken: token,
@@ -154,6 +155,9 @@ const login = async ({ username, password, ipAddress = null, userAgent = null })
     userAgent,
     description: "Login successful"
   });
+
+  const socket = require("../../config/socket");
+  socket.emitSessionRevoked(invalidatedSessions, "logged_in_elsewhere");
 
   return {
     token,
@@ -254,5 +258,6 @@ module.exports = {
   ensureDefaultAdmin,
   toPublicUser,
   changePassword,
-  logout
+  logout,
+  getSessionUser: async (userId) => toPublicUser(await User.findByPk(userId))
 };

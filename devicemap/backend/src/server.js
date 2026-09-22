@@ -13,6 +13,10 @@ const authService = require("./modules/auth/auth.service");
 // Load all models and associations
 require("./models/index");
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET must be configured in production");
+}
+
 const PORT = 3000;
 
 const server = http.createServer(app);

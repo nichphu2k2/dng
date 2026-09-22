@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { getActiveSessionByToken, touchSessionActivity } = require("../modules/auth/auth-session-log.service");
 
-const JWT_SECRET = process.env.JWT_SECRET || "devicemap-secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const authMiddleware = async (req, res, next) => {
   const header = String(req.headers.authorization || "").trim();

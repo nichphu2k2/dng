@@ -68,8 +68,18 @@ const logout = async (req, res) => {
   }
 };
 
+const session = async (req, res) => {
+  const user = await service.getSessionUser(req.auth?.id);
+  if (!user) {
+    return res.status(401).json({ success: false, message: "Session is invalid or expired" });
+  }
+
+  return res.json({ success: true, user, session_id: req.auth.sessionId });
+};
+
 module.exports = {
   login,
   changePassword,
-  logout
+  logout,
+  session
 };
