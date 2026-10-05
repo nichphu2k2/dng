@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-# Kiểm tra Docker
+# Check Docker
 if ! command -v docker >/dev/null 2>&1; then
     echo "Docker is not installed. Start installation..."
 
@@ -20,12 +20,14 @@ if ! command -v docker >/dev/null 2>&1; then
 
 
     sudo usermod -aG docker ${USER}
-    su - ${USER}
+    echo "Docker group has been updated."
+    echo "Please restart and run this script again."
+    exit 0
 else
     echo "Docker has been installed."
 fi
 
-# Kiểm tra Docker Compose (Compose V2)
+# Check Docker Compose (Compose V2)
 if ! docker compose version >/dev/null 2>&1; then
     echo "Docker Compose is not installed. Start installation..."
 
@@ -36,5 +38,4 @@ else
 fi
 
 docker compose down
-docker image prune -a -f
 docker compose up -d --build

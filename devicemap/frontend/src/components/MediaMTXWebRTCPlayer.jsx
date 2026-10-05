@@ -9,11 +9,6 @@ const getWebRtcBaseUrl = () => {
     return explicitUrl.replace(/\/+$/, "");
   }
 
-  const serverIp = String(import.meta.env.VITE_SERVER_IP || "").trim();
-  if (serverIp) {
-    return `http://${serverIp}:8889`;
-  }
-
   // Fall back to the same origin so requests go through Nginx's /webrtc/ proxy.
   return `${window.location.protocol}//${window.location.host}/webrtc`;
 };

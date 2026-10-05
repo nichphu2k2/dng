@@ -114,7 +114,7 @@ export default function AlertSetupSettings() {
             description={
               <>
                 <div>
-                  {`http://${import.meta.env.VITE_SERVER_IP}:${import.meta.env.VITE_PORT}/api/devicemap`}
+                  {`${window.location.origin}/api/devicemap`}
                 </div>
 
                 <pre

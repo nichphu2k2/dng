@@ -1,8 +1,13 @@
+#Install project:
+    bash 1.setup.sh
+
+# Đổi IP webrtcAdditionalHosts:
+    bash 2.set-ip-stream.sh
+
 Để mở port cần:
     - Mở port 80/TCP
     - Mở port 8189/UDP
     - Đổi IP pulic ở mediamtx/mediamtx.yml (webrtcAdditionalHosts)
-
 
 User/Password mặc định: admin/admin
 

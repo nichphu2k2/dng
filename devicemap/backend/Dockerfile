@@ -2,15 +2,6 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json ./
-
-RUN npm install --production
-
-COPY src ./src
-COPY default_camera.jpg ./default_camera.jpg
-
-
-# Install dependencies and build mbpoll
 RUN apk add --no-cache \
     git \
     cmake \
@@ -36,12 +27,14 @@ RUN apk add --no-cache \
         gcc \
         g++ \
         musl-dev \
-        linux-headers
+        linux-headers \
+    && mbpoll -h
 
+COPY package.json ./
+RUN npm install --production
 
-# Verify mbpoll exists
-RUN mbpoll -h
-
+COPY src ./src
+COPY default_camera.jpg ./default_camera.jpg
 
 EXPOSE 3000
 
