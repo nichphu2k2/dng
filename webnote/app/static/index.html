@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WebNote</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="lines-container">
+      <div class="input-line">
+        <input type="text" id="line1" class="single-line-input" placeholder="Dòng 1..." spellcheck="false" autocomplete="off">
+        <button type="button" class="btn-copy" id="copy-line1">Copy</button>
+      </div>
+      <div class="input-line">
+        <input type="text" id="line2" class="single-line-input" placeholder="Dòng 2..." spellcheck="false" autocomplete="off">
+        <button type="button" class="btn-copy" id="copy-line2">Copy</button>
+      </div>
+      <div class="input-line">
+        <input type="text" id="line3" class="single-line-input" placeholder="Dòng 3..." spellcheck="false" autocomplete="off">
+        <button type="button" class="btn-copy" id="copy-line3">Copy</button>
+      </div>
+    </div>
+
+    <div class="editor-wrapper">
+      <div id="editor" class="editor-content" contenteditable="true" data-placeholder="Nhập ghi chú hoặc dán ảnh (Ctrl+V)..." spellcheck="false"></div>
+    </div>
+
+    <div class="footer-bar">
+      <div id="statusBadge" class="status-badge">
+        <span class="status-dot"></span>
+        <span id="statusText">Connecting...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-msg"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
