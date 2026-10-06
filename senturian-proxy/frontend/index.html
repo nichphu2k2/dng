@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senturian to NX_VMS | Event Forwarding Bridge</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // Light Mode:
+            // Background: #F8F9FA, Surface: #FFFFFF
+            // Text Primary: #212529, Text Secondary: #6C757D
+            // Primary/Brand: #0D6EFD
+            // Border: #3B82F6
+            // Dark Mode:
+            // Background: #1A1D20, Surface/Card: #2A2F35
+            // Text Primary: #F8F9FA, Text Secondary: #94A3B8
+            // Primary/Brand: #3B82F6
+            // Border: #334155
+            app: {
+              lightBg: '#F8F9FA',
+              lightSurface: '#FFFFFF',
+              lightText: '#212529',
+              lightSubtext: '#6C757D',
+              lightBrand: '#0D6EFD',
+              lightBorder: '#3B82F6',
+
+              darkBg: '#1A1D20',
+              darkSurface: '#2A2F35',
+              darkText: '#F8F9FA',
+              darkSubtext: '#94A3B8',
+              darkBrand: '#3B82F6',
+              darkBorder: '#334155',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM 18 & Babel for JSX -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.5);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.8);
+    }
+    .modal-backdrop {
+      background: rgba(3, 7, 18, 0.75);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] dark:bg-[#1A1D20] text-[#212529] dark:text-[#F8F9FA] min-h-screen selection:bg-blue-600 selection:text-white transition-colors duration-200">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // --- Channel & Alarm Configuration ---
+    const CHANNEL_CONFIG = {
+      "Face-human & Recon.": {
+        hasAlarmType: false,
+        alarmTypes: [],
+        badgeColor: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-800",
+        description: "Face & Human Recognition"
+      },
+      "Structure Analysis": {
+        hasAlarmType: false,
+        alarmTypes: [],
+        badgeColor: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800",
+        description: "Video Structure Analysis"
+      },
+      "Goods": {
+        hasAlarmType: true,
+        alarmTypes: ["Sundry Detect", "Goods Forget", "Goods Guard"],
+        badgeColor: "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800",
+        description: "Goods & Asset Monitoring"
+      },
+      "Safety": {
+        hasAlarmType: true,
+        alarmTypes: [
+          "No Safety Cap Alarm",
+          "No Uniform Alarm",
+          "No Safety Belt Alarm",
+          "No Reflective Clothing Alarm",
+          "Flame Alarm",
+          "Smog Alarm",
+          "Loose Fire Equipment Detection",
+          "Mask Detection",
+          "Liquid Leak Detection"
+        ],
+        badgeColor: "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800",
+        description: "Workplace Safety & Fire Protection"
+      },
+      "Head Count": {
+        hasAlarmType: true,
+        alarmTypes: ["Regional People Count", "Enter-exit People Count"],
+        badgeColor: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800",
+        description: "People Counting & Flow Monitoring"
+      },
+      "Behavior Alert": {
+        hasAlarmType: true,
+        alarmTypes: [
+          "Fall Detection",
+          "Smoke Detection",
+          "Call",
+          "Watch Phone",
+          "Run",
+          "Sleep Detection",
+          "Person Off Duty Querying",
+          "Gathering",
+          "Fight",
+          "Overstaffed",
+          "Understaffed",
+          "Weapons detection"
+        ],
+        badgeColor: "bg-orange-50 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-800",
+        description: "Abnormal Behavior Detection"
+      },
+      "Perimeter Alert": {
+        hasAlarmType: true,
+        alarmTypes: [
+          "Park",
+          "Exit",
+          "Wander",
+          "Over Wall Detection",
+          "Intrusion",
+          "Tripwire",
+          "Climbing Detection"
+        ],
+        badgeColor: "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800",
+        description: "Perimeter & Boundary Protection"
+      },
+      "Video Inspection": {
+        hasAlarmType: true,
+        alarmTypes: ["Video Occlusion"],
+        badgeColor: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800",
+        description: "Camera Tampering & Occlusion"
+      }
+    };
+
+    const CHANNELS_LIST = Object.keys(CHANNEL_CONFIG);
+
+    // Automatically generate dynamic Webhook URL based on caller host/port
+    const getDynamicWebhookUrl = () => {
+      const protocol = window.location.protocol || "http:";
+      const host = window.location.hostname || "127.0.0.1";
+      const port = window.location.port;
+      const portStr = (port && port !== "80" && port !== "443") ? `:${port}` : "";
+      return `${protocol}//${host}${portStr}/api/webhook/senturian`;
+    };
+
+    // Cross-browser clipboard copy with fallback for non-secure HTTP contexts
+    const copyToClipboard = async (text, inputElement = null) => {
+      if (!text) return false;
+      // 1. Try modern Clipboard API if available in secure context
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (e) {
+          console.warn("navigator.clipboard.writeText failed, falling back to execCommand", e);
+        }
+      }
+
+      // 2. Fallback to selecting existing input element if provided
+      if (inputElement && typeof inputElement.select === "function") {
+        try {
+          inputElement.focus();
+          inputElement.select();
+          inputElement.setSelectionRange?.(0, 99999);
+          const success = document.execCommand("copy");
+          if (success) return true;
+        } catch (e) {
+          console.warn("Input select execCommand failed", e);
+        }
+      }
+
+      // 3. Fallback using temporary textarea
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.setAttribute("readonly", "");
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, 99999);
+        const success = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        return success;
+      } catch (err) {
+        console.error("All copy to clipboard attempts failed", err);
+        return false;
+      }
+    };
+
+    const INITIAL_SETTINGS = {
+      webhookUrl: getDynamicWebhookUrl(),
+      vmsUser: "admin",
+      vmsPassword: "admin@password2026",
+      vmsIp: "192.168.1.100",
+      vmsPort: 7001
+    };
+
+    // --- Main App Component with Sidebar Layout ---
+    function App() {
+      // Dark / Light Theme
+      const [isDark, setIsDark] = useState(() => {
+        const saved = localStorage.getItem("senturian_theme");
+        return saved ? saved === "dark" : true;
+      });
+
+      useEffect(() => {
+        const root = document.documentElement;
+        if (isDark) {
+          root.classList.add("dark");
+          localStorage.setItem("senturian_theme", "dark");
+        } else {
+          root.classList.remove("dark");
+          localStorage.setItem("senturian_theme", "light");
+        }
+      }, [isDark]);
+
+      // Rules state: database via Backend API is the sole source of truth
+      const [rules, setRules] = useState([]);
+      const [isLoadingRules, setIsLoadingRules] = useState(true);
+
+      // Settings state
+      const [settings, setSettings] = useState(() => {
+        return {
+          webhookUrl: getDynamicWebhookUrl(),
+          vmsUser: "",
+          vmsPassword: "",
+          vmsIp: "",
+          vmsPort: 7001
+        };
+      });
+
+      // Total successfully dispatched generic events to NX VMS (/rest/v4/events/generic)
+      const [successRecords, setSuccessRecords] = useState(0);
+
+      // Function to reload rules directly from backend database
+      const refreshRulesFromBackend = async () => {
+        try {
+          const rRes = await fetch("/api/rules");
+          if (rRes.ok) {
+            const rData = await rRes.json();
+            if (Array.isArray(rData)) {
+              setRules(rData);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch rules from backend API:", e);
+        } finally {
+          setIsLoadingRules(false);
+        }
+      };
+
+      // Load live data from Backend API and poll for metrics
+      useEffect(() => {
+        const fetchInitialData = async () => {
+          try {
+            // 1. Fetch settings & success count
+            const sRes = await fetch("/api/settings");
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              setSettings(prev => ({
+                ...prev,
+                vmsIp: sData.vms_ip || prev.vmsIp,
+                vmsPort: sData.vms_port || prev.vmsPort,
+                vmsUser: sData.vms_user || prev.vmsUser,
+                webhookUrl: sData.webhook_url || getDynamicWebhookUrl()
+              }));
+              if (sData.success_records !== undefined) {
+                setSuccessRecords(Number(sData.success_records));
+              }
+            }
+          } catch (e) {
+            console.error("Failed to fetch settings from backend:", e);
+          }
+
+          // 2. Fetch rules directly from DB
+          await refreshRulesFromBackend();
+        };
+
+        fetchInitialData();
+
+        // Periodic polling to update successRecords live when events are forwarded
+        const intervalId = setInterval(async () => {
+          try {
+            const res = await fetch("/api/settings");
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success_records !== undefined) {
+                setSuccessRecords(Number(data.success_records));
+              }
+            }
+          } catch (e) {}
+        }, 3000);
+
+        return () => clearInterval(intervalId);
+      }, []);
+
+      // Filter & Search
+      const [searchTerm, setSearchTerm] = useState("");
+      const [channelFilter, setChannelFilter] = useState("ALL");
+      const [statusFilter, setStatusFilter] = useState("ALL");
+
+      // Modals
+      const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
+      const [editingRule, setEditingRule] = useState(null);
+      const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+      const [deleteConfirmRule, setDeleteConfirmRule] = useState(null);
+
+      // Toast Notifications
+      const [toast, setToast] = useState(null);
+
+      const showToast = (message, type = "success") => {
+        setToast({ message, type, id: Date.now() });
+      };
+
+      useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(null), 3200);
+        return () => clearTimeout(timer);
+      }, [toast]);
+
+      // Handlers
+      const handleOpenAddRule = () => {
+        setEditingRule(null);
+        setIsRuleModalOpen(true);
+      };
+
+      const handleOpenEditRule = (rule) => {
+        setEditingRule(rule);
+        setIsRuleModalOpen(true);
+      };
+
+      const handleSaveRule = async (ruleData) => {
+        try {
+          if (editingRule) {
+            const updated = { ...ruleData, id: editingRule.id };
+            const res = await fetch(`/api/rules/${editingRule.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updated)
+            });
+            if (res.ok) {
+              await refreshRulesFromBackend();
+              showToast(`Rule "${ruleData.name}" updated successfully!`, "success");
+            } else {
+              showToast("Failed to update rule in database!", "error");
+            }
+          } else {
+            const res = await fetch("/api/rules", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(ruleData)
+            });
+            if (res.ok) {
+              await refreshRulesFromBackend();
+              showToast(`New rule "${ruleData.name}" created successfully!`, "success");
+            } else {
+              showToast("Failed to create rule in database!", "error");
+            }
+          }
+        } catch (e) {
+          showToast("Network error communicating with backend API!", "error");
+        }
+        setIsRuleModalOpen(false);
+        setEditingRule(null);
+      };
+
+      const handleDeleteRule = async (rule) => {
+        try {
+          const res = await fetch(`/api/rules/${rule.id}`, { method: "DELETE" });
+          if (res.ok) {
+            await refreshRulesFromBackend();
+            showToast(`Rule "${rule.name}" deleted!`, "info");
+          } else {
+            showToast("Failed to delete rule from database!", "error");
+          }
+        } catch (e) {
+          showToast("Network error communicating with backend API!", "error");
+        }
+        setDeleteConfirmRule(null);
+      };
+
+      const handleToggleStatus = async (ruleId) => {
+        try {
+          const res = await fetch(`/api/rules/${ruleId}/toggle`, { method: "PATCH" });
+          if (res.ok) {
+            const updated = await res.json();
+            await refreshRulesFromBackend();
+            const nextStatus = Boolean(updated.enabled);
+            showToast(`${nextStatus ? "Enabled" : "Disabled"} forwarding for "${updated.name}"`, nextStatus ? "success" : "info");
+          } else {
+            showToast("Failed to toggle rule status!", "error");
+          }
+        } catch (e) {
+          showToast("Network error communicating with backend API!", "error");
+        }
+      };
+
+      const handleCopyCameraId = async (cameraId) => {
+        try {
+          const success = await copyToClipboard(cameraId);
+          if (success) {
+            showToast("Camera ID copied to clipboard!", "info");
+          } else {
+            console.error("Failed to copy Camera ID:", cameraId);
+            showToast("Failed to copy Camera ID", "error");
+          }
+        } catch (error) {
+          console.error("Failed to copy Camera ID:", error);
+          showToast("Failed to copy Camera ID", "error");
+        }
+      };
+
+      // Filtered rules
+      const filteredRules = useMemo(() => {
+        return rules.filter(rule => {
+          const matchSearch = searchTerm.trim() === "" ||
+            rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            rule.cameraId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            rule.channelType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (rule.alarmType && rule.alarmType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (rule.deviceId && rule.deviceId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (rule.caption && rule.caption.toLowerCase().includes(searchTerm.toLowerCase()));
+
+          const matchChannel = channelFilter === "ALL" || rule.channelType === channelFilter;
+
+          const matchStatus = statusFilter === "ALL" ||
+            (statusFilter === "ACTIVE" && rule.enabled) ||
+            (statusFilter === "INACTIVE" && !rule.enabled);
+
+          return matchSearch && matchChannel && matchStatus;
+        });
+      }, [rules, searchTerm, channelFilter, statusFilter]);
+
+      return (
+        <div className={`min-h-screen flex ${isDark ? "bg-[#1A1D20] text-[#F8F9FA]" : "bg-[#F8F9FA] text-[#212529]"}`}>
+          
+          {/* ================= 1. SIDEBAR NAVIGATION ================= */}
+          <aside className={`w-20 md:w-64 border-r flex flex-col justify-between shrink-0 transition-all duration-300 z-30 sticky top-0 h-screen ${
+            isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-white border-[#3B82F6] shadow-sm"
+          }`}>
+            
+            {/* Top Brand Logo */}
+            <div>
+              <div className={`h-16 flex items-center justify-center md:justify-start px-4 border-b gap-3 ${
+                isDark ? "border-[#334155]" : "border-[#3B82F6]/30"
+              }`}>
+                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold shrink-0">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div className="hidden md:block truncate">
+                  <h2 className="text-sm font-bold tracking-tight text-blue-600 dark:text-[#3B82F6] truncate">
+                    SENTURIAN PROXY
+                  </h2>
+                </div>
+              </div>
+
+              {/* Navigation with 2 Main Icon Buttons: (+) Add Rule & (⚙️) Settings */}
+              <nav className="p-3 space-y-2">
+                
+                {/* Button (+) Add Rule */}
+                <button
+                  onClick={handleOpenAddRule}
+                  title="Add Event Forwarding Rule"
+                  className="w-full flex items-center justify-center md:justify-start gap-3 p-3 md:px-3.5 md:py-2.5 rounded-xl font-medium text-sm text-white bg-[#0D6EFD] dark:bg-[#3B82F6] hover:bg-blue-700 dark:hover:bg-blue-500 shadow-md shadow-blue-600/30 active:scale-95 transition-all group"
+                >
+                  <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/20 group-hover:scale-110 transition-transform">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <span className="hidden md:inline font-semibold">Add Rule</span>
+                </button>
+
+                {/* Button (Gear) Settings */}
+                <button
+                  onClick={() => setIsSettingsModalOpen(true)}
+                  title="System Settings"
+                  className={`w-full flex items-center justify-center md:justify-start gap-3 p-3 md:px-3.5 md:py-2.5 rounded-xl font-medium text-sm border active:scale-95 transition-all ${
+                    isDark
+                      ? "bg-[#2A2F35] hover:bg-[#333941] text-[#F8F9FA] border-[#334155] hover:border-[#3B82F6]"
+                      : "bg-[#F8F9FA] hover:bg-blue-50 text-[#212529] border-[#3B82F6]/50 hover:border-[#3B82F6]"
+                  }`}
+                >
+                  <div className="w-6 h-6 flex items-center justify-center text-[#0D6EFD] dark:text-[#3B82F6]">
+                    <svg className="w-5 h-5 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <span className="hidden md:inline font-semibold">Settings</span>
+                </button>
+
+              </nav>
+            </div>
+
+            {/* Bottom Sidebar: Status & Theme Toggle */}
+            <div className={`p-3 border-t space-y-2 ${isDark ? "border-[#334155]" : "border-[#3B82F6]/30"}`}>
+              <div className={`hidden md:block p-2.5 rounded-lg text-[11px] border ${
+                isDark 
+                  ? "bg-[#2A2F35] text-[#94A3B8] border-[#334155]" 
+                  : "bg-white text-[#6C757D] border-[#3B82F6]/30 shadow-xs"
+              }`}>
+                <div className="flex justify-between items-center mb-1">
+                  <span>Status:</span>
+                  <span className="text-emerald-500 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Total Rules:</span>
+                  <span className="text-[#212529] dark:text-[#F8F9FA] font-mono font-bold">{rules.length}</span>
+                </div>
+              </div>
+
+              {/* Theme Toggle Button */}
+              <button
+                onClick={() => setIsDark(!isDark)}
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                className={`w-full flex items-center justify-center md:justify-start gap-3 p-2.5 rounded-xl border text-xs font-semibold active:scale-95 transition-all ${
+                  isDark 
+                    ? "bg-[#2A2F35] hover:bg-[#333941] text-amber-400 border-[#334155]" 
+                    : "bg-[#F8F9FA] hover:bg-slate-200 text-[#212529] border-[#3B82F6]/50"
+                }`}
+              >
+                <span className="text-base">{isDark ? "☀" : "🌙"}</span>
+                <span className="hidden md:inline">{isDark ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+            </div>
+
+          </aside>
+
+          {/* ================= 2. MAIN CONTENT BODY ================= */}
+          <div className="flex-1 flex flex-col min-w-0">
+            
+            {/* Top Header */}
+            <header className={`h-16 border-b sticky top-0 z-20 backdrop-blur-md px-6 flex items-center justify-between ${
+              isDark ? "bg-[#1A1D20]/90 border-[#334155]" : "bg-white/95 border-[#3B82F6] shadow-xs"
+            }`}>
+              
+              {/* Header Title: "Senturian to NX_VMS" */}
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl font-extrabold tracking-tight text-blue-600 dark:text-[#3B82F6]">
+                  Senturian to NX_VMS
+                </h1>
+              </div>
+
+              {/* Quick Info Badges */}
+              <div className="flex items-center space-x-3 text-xs">
+                <div className={`hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg border ${
+                  isDark ? "bg-[#2A2F35] border-[#334155] text-[#94A3B8]" : "bg-[#F8F9FA] border-[#3B82F6]/40 text-[#212529]"
+                }`}>
+                  <span className="text-[#6C757D] dark:text-[#94A3B8]">NX Server:</span>
+                  <span className="font-mono-code font-bold text-blue-600 dark:text-[#3B82F6]">{settings.vmsIp}:{settings.vmsPort}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="font-medium text-emerald-600 dark:text-emerald-400 hidden sm:inline">VMS Ready</span>
+                </div>
+              </div>
+
+            </header>
+
+            {/* Page Body */}
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+              
+              {/* Quick Metrics Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                  isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/40 shadow-xs"
+                }`}>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-[#6C757D] dark:text-[#94A3B8]">Total Rules</p>
+                    <p className="text-2xl font-bold mt-1 text-[#212529] dark:text-[#F8F9FA]">{rules.length}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                  isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/40 shadow-xs"
+                }`}>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-[#6C757D] dark:text-[#94A3B8]">Active</p>
+                    <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{rules.filter(r => r.enabled).length}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                  isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/40 shadow-xs"
+                }`}>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-[#6C757D] dark:text-[#94A3B8]">Inactive</p>
+                    <p className="text-2xl font-bold mt-1 text-[#6C757D] dark:text-[#94A3B8]">{rules.filter(r => !r.enabled).length}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-slate-500/10 text-slate-500 dark:text-slate-400 flex items-center justify-center border border-slate-500/20">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Card 4: NX VMS Recorded Events (Incremented on successful /rest/v4/events/generic) */}
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                  isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/40 shadow-xs"
+                }`}>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-[#6C757D] dark:text-[#94A3B8]">Events Dispatched (NX VMS)</p>
+                    <div className="flex items-baseline space-x-2 mt-1">
+                      <p className="text-2xl font-bold text-[#0D6EFD] dark:text-[#3B82F6] font-mono-code">{successRecords}</p>
+                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">records</span>
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-[#0D6EFD] dark:text-[#3B82F6] flex items-center justify-center border border-blue-500/20 shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Search & Filters */}
+              <div className={`p-4 rounded-xl border flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between ${
+                isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/50 shadow-xs"
+              }`}>
+                <div className="relative flex-1">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6C757D] dark:text-[#94A3B8]">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search by Rule Name, Camera ID, Channel, Alarm, Device ID..."
+                    className={`w-full pl-10 pr-4 py-2 text-sm rounded-lg border outline-none transition ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                    }`}
+                  />
+                  {searchTerm && (
+                    <button 
+                      onClick={() => setSearchTerm("")} 
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6C757D] hover:text-[#212529] dark:text-[#94A3B8] dark:hover:text-[#F8F9FA]"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
+                  <select
+                    value={channelFilter}
+                    onChange={(e) => setChannelFilter(e.target.value)}
+                    className={`text-sm rounded-lg px-3 py-2 border outline-none transition font-medium ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                    }`}
+                  >
+                    <option value="ALL">All Channel Types</option>
+                    {CHANNELS_LIST.map(ch => (
+                      <option key={ch} value={ch}>{ch}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className={`text-sm rounded-lg px-3 py-2 border outline-none transition font-medium ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                    }`}
+                  >
+                    <option value="ALL">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+
+                  {(searchTerm || channelFilter !== "ALL" || statusFilter !== "ALL") && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setChannelFilter("ALL");
+                        setStatusFilter("ALL");
+                      }}
+                      className="px-3 py-2 text-xs font-semibold text-[#0D6EFD] dark:text-[#3B82F6] hover:underline transition"
+                      title="Reset filters"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* ================= 2. RULES TABLE ================= */}
+              <div className={`rounded-xl border overflow-hidden shadow-xs ${
+                isDark ? "bg-[#2A2F35] border-[#334155]" : "bg-white border-[#3B82F6]/50"
+              }`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    
+                    <thead className={`text-xs uppercase font-semibold border-b ${
+                      isDark ? "bg-[#1A1D20] text-[#94A3B8] border-[#334155]" : "bg-blue-50/70 text-[#212529] border-[#3B82F6]/40"
+                    }`}>
+                      <tr>
+                        <th className="py-3.5 px-4 w-16 text-center">#</th>
+                        <th className="py-3.5 px-4">Rule Name</th>
+                        <th className="py-3.5 px-4">Camera ID</th>
+                        <th className="py-3.5 px-4">Channel Type</th>
+                        <th className="py-3.5 px-4">Alarm Type</th>
+                        <th className="py-3.5 px-4">Device & Stream</th>
+                        <th className="py-3.5 px-4 text-center">Status</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody className={`divide-y ${isDark ? "divide-[#334155] text-[#F8F9FA]" : "divide-slate-200 text-[#212529]"}`}>
+                      {filteredRules.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="py-12 text-center text-[#6C757D] dark:text-[#94A3B8]">
+                            <div className="flex flex-col items-center justify-center space-y-3">
+                              <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-[#1A1D20] flex items-center justify-center text-blue-500">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                              <p className="font-medium">No matching event forwarding rules found</p>
+                              <button
+                                onClick={handleOpenAddRule}
+                                className="text-xs px-3.5 py-2 rounded-lg bg-[#0D6EFD] dark:bg-[#3B82F6] hover:bg-blue-700 dark:hover:bg-blue-500 text-white font-medium"
+                              >
+                                + Add Rule Now
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRules.map((rule, index) => {
+                          const channelMeta = CHANNEL_CONFIG[rule.channelType] || {};
+                          return (
+                            <tr 
+                              key={rule.id}
+                              className={`transition hover:bg-blue-50/50 dark:hover:bg-[#333941] ${!rule.enabled ? "opacity-60" : ""}`}
+                            >
+                              {/* STT */}
+                              <td className="py-4 px-4 text-center font-mono-code text-xs text-[#6C757D] dark:text-[#94A3B8]">
+                                #{String(index + 1).padStart(2, '0')}
+                              </td>
+
+                              {/* Rule Name */}
+                              <td className="py-4 px-4 font-semibold text-[#212529] dark:text-[#F8F9FA]">
+                                <div className="flex flex-col">
+                                  <span>{rule.name}</span>
+                                  {rule.caption && (
+                                    <span className="text-xs text-[#6C757D] dark:text-[#94A3B8] font-normal">
+                                      Caption: <span className="text-[#0D6EFD] dark:text-[#3B82F6] font-medium">{rule.caption}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Camera ID */}
+                              <td className="py-4 px-4">
+                                <div className="flex items-center space-x-1.5 font-mono-code text-xs">
+                                  <span className={`px-2 py-1 rounded max-w-[200px] truncate border ${
+                                    isDark 
+                                      ? "bg-[#1A1D20] text-blue-300 border-[#334155]" 
+                                      : "bg-blue-50 text-blue-800 border-blue-200"
+                                  }`} title={rule.cameraId}>
+                                    {rule.cameraId}
+                                  </span>
+                                  <button
+                                    onClick={() => handleCopyCameraId(rule.cameraId)}
+                                    title="Copy Camera ID"
+                                    className="text-[#6C757D] hover:text-[#0D6EFD] dark:text-[#94A3B8] dark:hover:text-[#3B82F6] transition p-1"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+
+                              {/* Channel Type */}
+                              <td className="py-4 px-4">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${channelMeta.badgeColor || "bg-slate-100 text-slate-700"}`}>
+                                  {rule.channelType}
+                                </span>
+                              </td>
+
+                              {/* Alarm Type / Face Group */}
+                              <td className="py-4 px-4">
+                                {rule.channelType === "Face-human & Recon." && (rule.face_groups || rule.faceGroups) ? (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
+                                    isDark 
+                                      ? "bg-[#1A1D20] text-purple-300 border-purple-800" 
+                                      : "bg-purple-50 text-purple-800 border-purple-200"
+                                  }`}>
+                                    Group: {rule.face_groups || rule.faceGroups}
+                                  </span>
+                                ) : rule.alarmType ? (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
+                                    isDark 
+                                      ? "bg-[#1A1D20] text-[#F8F9FA] border-[#334155]" 
+                                      : "bg-[#F8F9FA] text-[#212529] border-[#3B82F6]/40"
+                                  }`}>
+                                    {rule.alarmType}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-[#6C757D] dark:text-[#94A3B8] italic">
+                                    — None (Hidden)
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* Device & Stream */}
+                              <td className="py-4 px-4 text-xs font-mono-code text-[#6C757D] dark:text-[#94A3B8]">
+                                <div>Box: <span className="text-[#212529] dark:text-[#F8F9FA] font-medium">{rule.deviceId || "Default"}</span></div>
+                                <div>Stream: <span className="text-[#0D6EFD] dark:text-[#3B82F6] font-semibold">Stream {rule.streamId ?? rule.stream_id ?? 1}</span></div>
+                              </td>
+
+                              {/* Status Toggle */}
+                              <td className="py-4 px-4 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleStatus(rule.id)}
+                                  title={rule.enabled ? "Click to disable rule" : "Click to enable rule"}
+                                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                    rule.enabled ? "bg-emerald-500" : (isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-slate-300")
+                                  }`}
+                                >
+                                  <span
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                      rule.enabled ? "translate-x-5" : "translate-x-0"
+                                    }`}
+                                  />
+                                </button>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-4 px-4 text-right">
+                                <div className="inline-flex items-center space-x-1">
+                                  <button
+                                    onClick={() => handleOpenEditRule(rule)}
+                                    title="Edit rule"
+                                    className="p-1.5 rounded-lg text-[#0D6EFD] hover:bg-blue-50 dark:text-[#3B82F6] dark:hover:bg-[#1A1D20] transition"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    onClick={() => setDeleteConfirmRule(rule)}
+                                    title="Delete rule"
+                                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-[#1A1D20] transition"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+
+                  </table>
+                </div>
+
+                <div className={`px-4 py-3 border-t text-xs flex flex-col sm:flex-row items-center justify-between gap-2 ${
+                  isDark ? "bg-[#1A1D20] border-[#334155] text-[#94A3B8]" : "bg-[#F8F9FA] border-[#3B82F6]/30 text-[#6C757D]"
+                }`}>
+                  <span>Showing <strong className="text-[#212529] dark:text-[#F8F9FA]">{filteredRules.length}</strong> / <strong className="text-[#212529] dark:text-[#F8F9FA]">{rules.length}</strong> event rules</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Running with MySQL & Docker Compose</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </main>
+          </div>
+
+          {/* ================= 3. MODAL / DIALOG "ADD RULE" ================= */}
+          {isRuleModalOpen && (
+            <RuleModal
+              isDark={isDark}
+              rule={editingRule}
+              onClose={() => setIsRuleModalOpen(false)}
+              onSave={handleSaveRule}
+              totalRulesCount={rules.length}
+            />
+          )}
+
+          {/* ================= 4. MODAL / TAB "SETTINGS" ================= */}
+          {isSettingsModalOpen && (
+            <SettingsModal
+              isDark={isDark}
+              settings={settings}
+              onClose={() => setIsSettingsModalOpen(false)}
+              onSave={(newSettings) => {
+                setSettings(newSettings);
+                showToast("System settings saved successfully!", "success");
+                setIsSettingsModalOpen(false);
+              }}
+              showToast={showToast}
+            />
+          )}
+
+          {/* Confirm Delete Dialog */}
+          {deleteConfirmRule && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+              <div className={`w-full max-w-md p-6 rounded-2xl border shadow-2xl ${isDark ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA]" : "bg-white border-[#3B82F6]/50 text-[#212529]"}`}>
+                <div className="flex items-center space-x-3 text-rose-500 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold">Confirm Rule Deletion</h3>
+                </div>
+                <p className="text-sm text-[#6C757D] dark:text-[#94A3B8] mb-6">
+                  Are you sure you want to delete <strong className="text-[#212529] dark:text-[#F8F9FA]">"{deleteConfirmRule.name}"</strong>? Events from Camera ID <span className="font-mono text-[#0D6EFD] dark:text-[#3B82F6]">{deleteConfirmRule.cameraId}</span> will stop forwarding to NX VMS.
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setDeleteConfirmRule(null)}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg border ${isDark ? "border-[#334155] bg-[#1A1D20] hover:bg-[#333941] text-[#F8F9FA]" : "border-slate-300 bg-[#F8F9FA] hover:bg-slate-200 text-[#212529]"}`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDeleteRule(deleteConfirmRule)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/30"
+                  >
+                    Confirm Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Toast Notification */}
+          {toast && (
+            <div className={`fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl border text-sm ${
+              isDark ? "bg-[#2A2F35] border-[#3B82F6] text-[#F8F9FA]" : "bg-white border-[#3B82F6] text-[#212529]"
+            }`}>
+              {toast.type === "success" && (
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">✓</div>
+              )}
+              {toast.type === "error" && (
+                <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">✕</div>
+              )}
+              {toast.type === "info" && (
+                <div className="w-6 h-6 rounded-full bg-blue-500/20 text-[#0D6EFD] dark:text-[#3B82F6] flex items-center justify-center font-bold">ℹ</div>
+              )}
+              <span className="font-medium">{toast.message}</span>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // --- Sub-component: RuleModal ---
+    function RuleModal({ isDark, rule, onClose, onSave, totalRulesCount }) {
+      const isEditing = Boolean(rule);
+
+      const [name, setName] = useState(rule?.name || `Rule ${totalRulesCount + 1}`);
+      const [cameraId, setCameraId] = useState(rule?.cameraId || "");
+      const [channelType, setChannelType] = useState(rule?.channelType || "");
+      const [alarmType, setAlarmType] = useState(rule?.alarmType || "");
+      const [faceGroups, setFaceGroups] = useState(rule ? (rule.face_groups || rule.faceGroups || "") : "");
+      const [deviceId, setDeviceId] = useState(rule?.deviceId || "");
+      const [streamId, setStreamId] = useState(rule ? (rule.streamId ?? rule.stream_id ?? "") : "");
+
+      // Optional property controls
+      // Requirement 4: Checkbox Source tích mặc định (true), default value: "Senturian_AI"
+      const [enableSource, setEnableSource] = useState(rule?.enableSource ?? true);
+      const [source, setSource] = useState(rule ? (rule.source ?? "") : "Senturian_AI");
+
+      // Requirement 5: Checkbox Caption KHÔNG được tích mặc định (false)
+      const [enableCaption, setEnableCaption] = useState(rule?.enableCaption ?? false);
+      const [caption, setCaption] = useState(rule?.caption || "");
+      const [isCaptionCustom, setIsCaptionCustom] = useState(
+        Boolean(isEditing && rule?.caption && rule.caption !== rule.alarmType)
+      );
+
+      const [enableDescription, setEnableDescription] = useState(rule?.enableDescription ?? false);
+      const [description, setDescription] = useState(rule?.description ?? "");
+
+      const [enabled, setEnabled] = useState(rule?.enabled ?? true);
+
+      // Handle channel type change: hide alarm type if channel does not support it
+      const handleChannelChange = (newChannel) => {
+        setChannelType(newChannel);
+        const config = CHANNEL_CONFIG[newChannel];
+        if (newChannel === "Face-human & Recon.") {
+          setAlarmType(null);
+          if (!isEditing) {
+            setFaceGroups("");
+          }
+          if (enableCaption && !isCaptionCustom) {
+            setCaption("");
+          }
+        } else if (!config || !config.hasAlarmType) {
+          setAlarmType(null);
+          if (enableCaption && !isCaptionCustom) {
+            setCaption("");
+          }
+        } else {
+          setAlarmType(""); // Requirement 2: Do not auto-select Alarm Type
+          if (enableCaption && !isCaptionCustom) {
+            setCaption("");
+          }
+        }
+      };
+
+      // Requirement 6 & 8: Auto-update caption when Alarm Type changes IF caption is enabled and NOT custom
+      const handleAlarmTypeChange = (newAlarm) => {
+        setAlarmType(newAlarm);
+        if (channelType !== "Face-human & Recon." && enableCaption && !isCaptionCustom) {
+          setCaption(newAlarm || "");
+        }
+      };
+
+      // Requirement 5.2: When user checks Caption, auto-populate from current Alarm Type (unless Face-human & Recon.)
+      const handleToggleCaption = (checked) => {
+        setEnableCaption(checked);
+        if (checked) {
+          if (channelType === "Face-human & Recon.") {
+            setCaption("");
+          } else {
+            setCaption(alarmType || "");
+          }
+          setIsCaptionCustom(false);
+        }
+      };
+
+      // Requirement 7, 8, 9: User manual edits on Caption mark it as custom
+      const handleCaptionChange = (e) => {
+        setCaption(e.target.value);
+        setIsCaptionCustom(true);
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!cameraId.trim()) {
+          alert("Please enter a valid Camera ID!");
+          return;
+        }
+
+        if (!channelType) {
+          alert("Please select a Channel Type!");
+          return;
+        }
+
+        const config = CHANNEL_CONFIG[channelType];
+        if (channelType !== "Face-human & Recon." && config?.hasAlarmType && !alarmType) {
+          alert("Please select an Alarm Type!");
+          return;
+        }
+
+        if (streamId === "" || streamId === null || isNaN(Number(streamId))) {
+          alert("Please select a Stream ID!");
+          return;
+        }
+
+        const isFaceRecon = channelType === "Face-human & Recon.";
+        const finalAlarmType = isFaceRecon ? null : (config?.hasAlarmType ? alarmType : null);
+        const finalFaceGroups = isFaceRecon ? faceGroups : (rule?.face_groups || null);
+
+        onSave({
+          name: name.trim() || `Rule ${totalRulesCount + 1}`,
+          cameraId: cameraId.trim(),
+          camera_id: cameraId.trim(),
+          channelType,
+          channel_type: channelType,
+          alarmType: finalAlarmType,
+          alarm_type: finalAlarmType,
+          faceGroups: finalFaceGroups,
+          face_groups: finalFaceGroups,
+          deviceId: deviceId.trim(),
+          device_id: deviceId.trim(),
+          streamId: Number(streamId),
+          stream_id: Number(streamId),
+          enableSource,
+          enable_source: enableSource,
+          source: enableSource ? (source.trim() || "Senturian_AI") : "",
+          enableCaption,
+          enable_caption: enableCaption,
+          caption: enableCaption ? caption.trim() : "",
+          enableDescription,
+          enable_description: enableDescription,
+          description: enableDescription ? description.trim() : "",
+          enabled
+        });
+      };
+
+      const currentChannelMeta = CHANNEL_CONFIG[channelType] || {};
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+          <div className={`w-full max-w-2xl my-8 rounded-2xl border shadow-2xl overflow-hidden ${isDark ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA]" : "bg-white border-[#3B82F6]/50 text-[#212529]"}`}>
+            
+            {/* Modal Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? "border-[#334155] bg-[#1A1D20]" : "border-[#3B82F6]/30 bg-blue-50/60"}`}>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-[#0D6EFD] dark:text-[#3B82F6] flex items-center justify-center font-bold">
+                  {isEditing ? "✎" : "+"}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#212529] dark:text-[#F8F9FA]">
+                    {isEditing ? "Edit Forwarding Rule" : "Add Event Forwarding Rule"}
+                  </h2>
+                </div>
+              </div>
+              <button 
+                onClick={onClose}
+                className="text-[#6C757D] hover:text-[#212529] dark:text-[#94A3B8] dark:hover:text-[#F8F9FA] p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-[#1A1D20] transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              
+              {/* Rule Name */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                  Rule Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Rule 1 - Night Shift Sleep Detection"
+                  className={`w-full px-3.5 py-2 text-sm rounded-lg border outline-none transition ${
+                    isDark 
+                      ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                      : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                  }`}
+                />
+              </div>
+
+              {/* Camera ID */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8]">
+                    Camera ID <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[11px] text-[#0D6EFD] dark:text-[#3B82F6] font-mono-code">UUID on NX Server</span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={cameraId}
+                  onChange={(e) => setCameraId(e.target.value)}
+                  placeholder="e.g. 00000000-0000-0000-0000-000000000000"
+                  className={`w-full px-3.5 py-2 text-sm font-mono-code rounded-lg border outline-none transition ${
+                    isDark 
+                      ? "bg-[#1A1D20] border-[#334155] text-blue-300 placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                      : "bg-[#F8F9FA] border-[#3B82F6]/50 text-blue-700 placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                  }`}
+                />
+              </div>
+
+              {/* 2-Column Grid: Channel Type & Alarm Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Channel Type */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                    Channel Type <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={channelType}
+                    onChange={(e) => handleChannelChange(e.target.value)}
+                    className={`w-full px-3 py-2 text-sm rounded-lg border outline-none transition font-medium ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                    }`}
+                  >
+                    <option value="" disabled>Please selection Channel Type</option>
+                    {CHANNELS_LIST.map(ch => (
+                      <option key={ch} value={ch}>{ch}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Alarm Type OR Face Group */}
+                {channelType === "Face-human & Recon." ? (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      FACE GROUP
+                    </label>
+                    <input
+                      type="text"
+                      value={faceGroups}
+                      onChange={(e) => setFaceGroups(e.target.value)}
+                      placeholder="e.g. VIP_CUSTOMER"
+                      className={`w-full px-3.5 py-2 text-sm rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                          : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  </div>
+                ) : (!channelType || currentChannelMeta.hasAlarmType) ? (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      Alarm Type <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={alarmType || ""}
+                      onChange={(e) => handleAlarmTypeChange(e.target.value)}
+                      className={`w-full px-3 py-2 text-sm rounded-lg border outline-none transition font-medium ${
+                        isDark 
+                          ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                          : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                      }`}
+                    >
+                      <option value="" disabled>Please selection Alarm Type</option>
+                      {(currentChannelMeta.alarmTypes || []).map(al => (
+                        <option key={al} value={al}>{al}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className={`flex items-center justify-center p-3 rounded-lg border border-dashed text-xs italic ${
+                    isDark ? "border-[#334155] text-[#94A3B8] bg-[#1A1D20]" : "border-[#3B82F6]/40 text-[#6C757D] bg-blue-50/50"
+                  }`}>
+                    ℹ Alarm Type is hidden for {channelType}
+                  </div>
+                )}
+
+              </div>
+
+              {/* 2-Column Grid: Device_id & Stream_id */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Device_id */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                    Device ID
+                  </label>
+                  <input
+                    type="text"
+                    value={deviceId}
+                    onChange={(e) => setDeviceId(e.target.value)}
+                    placeholder="AI BOX Device ID"
+                    className={`w-full px-3.5 py-2 text-sm rounded-lg border outline-none transition ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                    }`}
+                  />
+                </div>
+
+                {/* Stream_id (1 to 16) */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                    Stream ID
+                  </label>
+                  <select
+                    value={streamId}
+                    onChange={(e) => setStreamId(e.target.value === "" ? "" : Number(e.target.value))}
+                    className={`w-full px-3 py-2 text-sm rounded-lg border outline-none transition font-mono-code ${
+                      isDark 
+                        ? "bg-[#1A1D20] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                    }`}
+                  >
+                    <option value="" disabled>Please selection Stream ID</option>
+                    {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
+                      <option key={num} value={num}>Stream {num}</option>
+                    ))}
+                  </select>
+                </div>
+
+              </div>
+
+              {/* Optional Fields Group: Source, Caption, Description */}
+              <div className={`p-4 rounded-xl border space-y-4 ${isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-blue-50/40 border-[#3B82F6]/40"}`}>
+                <div className="text-xs font-bold uppercase tracking-wider text-[#6C757D] dark:text-[#94A3B8] flex items-center justify-between">
+                  <span>Generic Event Information</span>
+                </div>
+
+                {/* [Checkbox] Source */}
+                <div className="space-y-1.5">
+                  <label className="flex items-center space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={enableSource}
+                      onChange={(e) => setEnableSource(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#0D6EFD] focus:ring-blue-500 bg-[#F8F9FA] dark:bg-[#2A2F35] border-slate-300 dark:border-[#334155]"
+                    />
+                    <span className="text-xs font-semibold text-[#212529] dark:text-[#F8F9FA]">Source</span>
+                  </label>
+                  {enableSource && (
+                    <input
+                      type="text"
+                      value={source}
+                      onChange={(e) => setSource(e.target.value)}
+                      placeholder="Default: Senturian_AI"
+                      className={`w-full px-3 py-1.5 text-xs rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  )}
+                </div>
+
+                {/* [Checkbox] Caption */}
+                <div className="space-y-1.5">
+                  <label className="flex items-center space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={enableCaption}
+                      onChange={(e) => handleToggleCaption(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#0D6EFD] focus:ring-blue-500 bg-[#F8F9FA] dark:bg-[#2A2F35] border-slate-300 dark:border-[#334155]"
+                    />
+                    <span className="text-xs font-semibold text-[#212529] dark:text-[#F8F9FA]">Caption</span>
+                  </label>
+                  {enableCaption && (
+                    <input
+                      type="text"
+                      value={caption}
+                      onChange={handleCaptionChange}
+                      placeholder="e.g. Face Recognition / Security Alert"
+                      className={`w-full px-3 py-1.5 text-xs rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  )}
+                </div>
+
+                {/* [Checkbox] Description */}
+                <div className="space-y-1.5">
+                  <label className="flex items-center space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={enableDescription}
+                      onChange={(e) => setEnableDescription(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#0D6EFD] focus:ring-blue-500 bg-[#F8F9FA] dark:bg-[#2A2F35] border-slate-300 dark:border-[#334155]"
+                    />
+                    <span className="text-xs font-semibold text-[#212529] dark:text-[#F8F9FA]">Description</span>
+                  </label>
+                  {enableDescription && (
+                    <input
+                      type="text"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Detailed event description for VMS Operator"
+                      className={`w-full px-3 py-1.5 text-xs rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] placeholder-[#94A3B8] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] placeholder-[#6C757D] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  )}
+                </div>
+
+              </div>
+
+              {/* Status Switch */}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-xs font-semibold text-[#6C757D] dark:text-[#94A3B8]">Rule Enabled Status</span>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enabled}
+                    onChange={(e) => setEnabled(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-11 h-6 rounded-full transition ${enabled ? "bg-emerald-500" : (isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-slate-300")} flex items-center p-0.5`}>
+                    <div className={`w-5 h-5 rounded-full bg-white transition transform ${enabled ? "translate-x-5" : ""}`} />
+                  </div>
+                  <span className="ml-2 text-xs text-[#212529] dark:text-[#F8F9FA] font-medium">
+                    {enabled ? "Enabled" : "Disabled"}
+                  </span>
+                </label>
+              </div>
+
+              {/* Action Buttons: Save Rule & Cancel */}
+              <div className={`pt-4 border-t flex items-center justify-end space-x-3 ${isDark ? "border-[#334155]" : "border-[#3B82F6]/30"}`}>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg border transition ${
+                    isDark 
+                      ? "border-[#334155] bg-[#1A1D20] hover:bg-[#333941] text-[#F8F9FA]" 
+                      : "border-slate-300 bg-[#F8F9FA] hover:bg-slate-200 text-[#212529]"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-sm font-semibold rounded-lg text-white bg-[#0D6EFD] dark:bg-[#3B82F6] hover:bg-blue-700 dark:hover:bg-blue-500 shadow-md shadow-blue-600/30 transition active:scale-95"
+                >
+                  Save Rule
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- Sub-component: SettingsModal ---
+    function SettingsModal({ isDark, settings, onClose, onSave, showToast }) {
+      const computedWebhookUrl = settings.webhookUrl || getDynamicWebhookUrl();
+      const [webhookUrl, setWebhookUrl] = useState(computedWebhookUrl);
+      const [vmsUser, setVmsUser] = useState(settings.vmsUser);
+      const [vmsPassword, setVmsPassword] = useState(settings.vmsPassword);
+      const [showPassword, setShowPassword] = useState(false);
+      const [vmsIp, setVmsIp] = useState(settings.vmsIp);
+      const [vmsPort, setVmsPort] = useState(settings.vmsPort);
+
+      const [testing, setTesting] = useState(false);
+      const webhookInputRef = React.useRef(null);
+
+      // Keep webhookUrl synced if settings changes or location loads
+      useEffect(() => {
+        setWebhookUrl(settings.webhookUrl || getDynamicWebhookUrl());
+      }, [settings.webhookUrl]);
+
+      const handleCopyWebhook = async () => {
+        const textToCopy = webhookUrl || computedWebhookUrl;
+        const success = await copyToClipboard(textToCopy, webhookInputRef.current);
+        if (success) {
+          showToast("Webhook URL copied to clipboard!", "success");
+        } else {
+          showToast("Failed to copy Webhook URL. Please copy manually.", "error");
+        }
+      };
+
+      const handleTestConnection = async () => {
+        if (!vmsIp || !vmsUser) {
+          showToast("Please provide NX VMS IP and Username!", "error");
+          return;
+        }
+
+        setTesting(true);
+        try {
+          const res = await fetch("/api/settings/nx/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ip: vmsIp.trim(),
+              port: Number(vmsPort),
+              username: vmsUser.trim(),
+              password: vmsPassword
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`${data.message} (${data.recording_cameras_count} recording cameras. Token: ${data.bearer_token})`, "success");
+          } else {
+            showToast(data.message || "NX VMS connection failed", "error");
+          }
+        } catch (err) {
+          showToast("Could not send test request to Backend: " + err.message, "error");
+        } finally {
+          setTesting(false);
+        }
+      };
+
+      const handleSave = async (e) => {
+        e.preventDefault();
+        const payload = {
+          webhookUrl,
+          vmsUser: vmsUser.trim(),
+          vmsPassword,
+          vmsIp: vmsIp.trim(),
+          vmsPort: Number(vmsPort)
+        };
+        try {
+          await fetch("/api/settings", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              vms_ip: vmsIp.trim(),
+              vms_port: Number(vmsPort),
+              vms_user: vmsUser.trim(),
+              vms_password: vmsPassword
+            })
+          });
+          showToast("NX VMS settings saved successfully!", "success");
+        } catch (err) {
+          showToast("Saved to local storage cache (Backend offline)", "info");
+        }
+        onSave(payload);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+          <div className={`w-full max-w-xl my-8 rounded-2xl border shadow-2xl overflow-hidden ${isDark ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA]" : "bg-white border-[#3B82F6]/50 text-[#212529]"}`}>
+            
+            {/* Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? "border-[#334155] bg-[#1A1D20]" : "border-[#3B82F6]/30 bg-blue-50/60"}`}>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-[#0D6EFD] dark:text-[#3B82F6] flex items-center justify-center font-bold">
+                  ⚙
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#212529] dark:text-[#F8F9FA]">Settings</h2>
+                  <p className="text-xs text-[#6C757D] dark:text-[#94A3B8]">Configure Webhook Receiver & NX VMS Server Connection</p>
+                </div>
+              </div>
+              <button 
+                onClick={onClose}
+                className="text-[#6C757D] hover:text-[#212529] dark:text-[#94A3B8] dark:hover:text-[#F8F9FA] p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-[#1A1D20] transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+              
+              {/* Part 1: Event Ingestion Webhook URL */}
+              <div className={`p-4 rounded-xl border space-y-2.5 ${isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-blue-50/40 border-[#3B82F6]/40"}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0D6EFD] dark:text-[#3B82F6]">
+                    Webhook URL FOR SENTURIAN
+                  </span>
+                  <span className="text-[10px] uppercase font-mono-code bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-semibold">
+                    POST Webhook
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    ref={webhookInputRef}
+                    type="text"
+                    readOnly
+                    value={webhookUrl}
+                    className={`flex-1 px-3 py-2 text-xs font-mono-code rounded-lg border outline-none cursor-default select-all ${
+                      isDark 
+                        ? "bg-[#2A2F35] border-[#334155] text-blue-300" 
+                        : "bg-[#F8F9FA] border-[#3B82F6]/50 text-blue-700 font-semibold"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyWebhook}
+                    className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0D6EFD] dark:bg-[#3B82F6] hover:bg-blue-700 dark:hover:bg-blue-500 text-white flex items-center space-x-1 shadow-sm active:scale-95 transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>Copy</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Part 2: NX VMS Configuration */}
+              <div className={`p-4 rounded-xl border space-y-4 ${isDark ? "bg-[#1A1D20] border-[#334155]" : "bg-blue-50/40 border-[#3B82F6]/40"}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    NX VMS Configuration
+                  </span>
+                  <span className="text-[10px] uppercase font-mono-code bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-semibold">
+                    REST API
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  
+                  {/* IP */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      Server IP <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={vmsIp}
+                      onChange={(e) => setVmsIp(e.target.value)}
+                      placeholder="192.168.1.100"
+                      className={`w-full px-3 py-2 text-sm font-mono-code rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  </div>
+
+                  {/* Port */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      Port <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={vmsPort}
+                      onChange={(e) => setVmsPort(e.target.value)}
+                      placeholder="7001"
+                      className={`w-full px-3 py-2 text-sm font-mono-code rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  </div>
+
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  
+                  {/* Username */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      Username <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={vmsUser}
+                      onChange={(e) => setVmsUser(e.target.value)}
+                      placeholder="admin"
+                      className={`w-full px-3 py-2 text-sm rounded-lg border outline-none transition ${
+                        isDark 
+                          ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                          : "bg-white border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                      }`}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6C757D] dark:text-[#94A3B8] mb-1">
+                      Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={vmsPassword}
+                        onChange={(e) => setVmsPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={`w-full pl-3 pr-10 py-2 text-sm rounded-lg border outline-none transition ${
+                          isDark 
+                            ? "bg-[#2A2F35] border-[#334155] text-[#F8F9FA] focus:border-[#3B82F6]" 
+                            : "bg-white border-[#3B82F6]/50 text-[#212529] focus:border-[#0D6EFD]"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6C757D] hover:text-[#212529] dark:text-[#94A3B8] dark:hover:text-[#F8F9FA]"
+                        title={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Test Connection Button */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    disabled={testing}
+                    onClick={handleTestConnection}
+                    className={`w-full py-2.5 text-xs font-semibold rounded-lg border flex items-center justify-center space-x-2 transition active:scale-[0.99] ${
+                      isDark 
+                        ? "border-[#334155] hover:border-[#3B82F6] bg-[#2A2F35] hover:bg-[#333941] text-[#3B82F6]" 
+                        : "border-[#3B82F6]/50 hover:border-[#0D6EFD] bg-blue-50/50 hover:bg-blue-100/60 text-[#0D6EFD]"
+                    }`}
+                  >
+                    {testing ? (
+                      <>
+                        <svg className="animate-spin w-4 h-4 text-[#0D6EFD] dark:text-[#3B82F6]" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Testing NX Server connection...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 text-[#0D6EFD] dark:text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>Test Connection</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Action Buttons: Save Settings */}
+              <div className={`pt-4 border-t flex items-center justify-end space-x-3 ${isDark ? "border-[#334155]" : "border-[#3B82F6]/30"}`}>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg border transition ${
+                    isDark 
+                      ? "border-[#334155] bg-[#1A1D20] hover:bg-[#333941] text-[#F8F9FA]" 
+                      : "border-slate-300 bg-[#F8F9FA] hover:bg-slate-200 text-[#212529]"
+                  }`}
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-sm font-semibold rounded-lg text-white bg-[#0D6EFD] dark:bg-[#3B82F6] hover:bg-blue-700 dark:hover:bg-blue-500 shadow-md shadow-blue-600/30 transition active:scale-95"
+                >
+                  Save Settings
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // Render the App
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

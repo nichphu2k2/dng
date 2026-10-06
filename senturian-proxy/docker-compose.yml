@@ -1,0 +1,60 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: senturian-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: senturian
+      MYSQL_DATABASE: senturian
+      MYSQL_USER: senturian
+      MYSQL_PASSWORD: senturian
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "senturian", "-psenturian"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks:
+      - senturian-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: senturian-backend
+    restart: always
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: senturian
+      DB_PASSWORD: senturian
+      DB_NAME: senturian
+      PORT: 8000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - senturian-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: senturian-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - senturian-net
+
+networks:
+  senturian-net:
+    driver: bridge
