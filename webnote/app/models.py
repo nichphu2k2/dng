@@ -8,7 +8,7 @@ class TextBlock(BaseModel):
 class ImageBlock(BaseModel):
     type: Literal["image"] = "image"
     id: str
-    src: str
+    src: Optional[str] = ""
 
 DocumentBlock = Union[TextBlock, ImageBlock]
 
@@ -38,4 +38,3 @@ class ImageUploadResponse(BaseModel):
     filename: str
     mime_type: str
     size: int
-

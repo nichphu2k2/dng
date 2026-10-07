@@ -4,27 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>WebNote</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    if (!window.location.pathname.endsWith('/')) {
+      window.location.replace(window.location.pathname + '/' + window.location.search + window.location.hash);
+    }
+  </script>
+  <link rel="stylesheet" href="static/style.css?v=4">
 </head>
 <body>
   <div class="container">
     <div class="lines-container">
       <div class="input-line">
-        <input type="text" id="line1" class="single-line-input" placeholder="Dòng 1..." spellcheck="false" autocomplete="off">
+        <input type="text" id="line1" class="single-line-input" placeholder="Please fill out this field." spellcheck="false" autocomplete="off">
         <button type="button" class="btn-copy" id="copy-line1">Copy</button>
       </div>
       <div class="input-line">
-        <input type="text" id="line2" class="single-line-input" placeholder="Dòng 2..." spellcheck="false" autocomplete="off">
+        <input type="text" id="line2" class="single-line-input" placeholder="Please fill out this field." spellcheck="false" autocomplete="off">
         <button type="button" class="btn-copy" id="copy-line2">Copy</button>
       </div>
       <div class="input-line">
-        <input type="text" id="line3" class="single-line-input" placeholder="Dòng 3..." spellcheck="false" autocomplete="off">
+        <input type="text" id="line3" class="single-line-input" placeholder="Please fill out this field." spellcheck="false" autocomplete="off">
         <button type="button" class="btn-copy" id="copy-line3">Copy</button>
       </div>
     </div>
 
     <div class="editor-wrapper">
       <div id="editor" class="editor-content" contenteditable="true" data-placeholder="Nhập ghi chú hoặc dán ảnh (Ctrl+V)..." spellcheck="false"></div>
+      <button type="button" id="saveEditorBtn" class="btn-save-editor">Save</button>
     </div>
 
     <div class="footer-bar">
@@ -37,6 +43,6 @@
 
   <div id="toast" class="toast-msg"></div>
 
-  <script src="/static/app.js"></script>
+  <script src="static/app.js?v=4"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from app.database import init_db, get_document, update_document
 from app.websocket import manager
@@ -24,7 +24,7 @@ app.include_router(api_router)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def get_index():
     return FileResponse(STATIC_DIR / "index.html")
 
@@ -53,11 +53,11 @@ async def websocket_endpoint(websocket: WebSocket):
 
             msg_type = msg.get("type")
 
-            if msg_type == "update":
-                line1 = msg.get("line1", "")
-                line2 = msg.get("line2", "")
-                line3 = msg.get("line3", "")
-                content = msg.get("content", "")
+            if msg_type in ("update", "update_lines", "save_editor"):
+                line1 = msg.get("line1")
+                line2 = msg.get("line2")
+                line3 = msg.get("line3")
+                content = msg.get("content")
                 client_version = msg.get("version")
 
                 updated_doc = update_document(
@@ -70,6 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 broadcast_msg = {
                     "type": "document_update",
+                    "subtype": msg_type,
                     "version": updated_doc["version"],
                     "line1": updated_doc["line1"],
                     "line2": updated_doc["line2"],
@@ -77,7 +78,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     "content": updated_doc["content"],
                     "updated_at": updated_doc["updated_at"]
                 }
-                await manager.broadcast(broadcast_msg)
+                await websocket.send_json({
+                    "type": "ack",
+                    "subtype": msg_type,
+                    "version": updated_doc["version"]
+                })
+                await manager.broadcast(broadcast_msg, exclude=websocket)
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)

@@ -68,13 +68,29 @@ def get_document():
             "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
 
-def update_document(line1: str, line2: str, line3: str, content: str, client_version: int | None = None):
+def update_document(
+    line1: str | None = None,
+    line2: str | None = None,
+    line3: str | None = None,
+    content: str | None = None,
+    client_version: int | None = None
+):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT version FROM document WHERE id = 1")
+        cursor.execute("SELECT line1, line2, line3, content, version FROM document WHERE id = 1")
         row = cursor.fetchone()
         current_version = row["version"] if row else 1
         
+        cur_line1 = row["line1"] if row else ""
+        cur_line2 = row["line2"] if row else ""
+        cur_line3 = row["line3"] if row else ""
+        cur_content = row["content"] if row else ""
+
+        final_line1 = line1 if line1 is not None else cur_line1
+        final_line2 = line2 if line2 is not None else cur_line2
+        final_line3 = line3 if line3 is not None else cur_line3
+        final_content = content if content is not None else cur_content
+
         new_version = current_version + 1
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -82,15 +98,15 @@ def update_document(line1: str, line2: str, line3: str, content: str, client_ver
             UPDATE document
             SET line1 = ?, line2 = ?, line3 = ?, content = ?, version = ?, updated_at = ?
             WHERE id = 1
-        """, (line1, line2, line3, content, new_version, now))
+        """, (final_line1, final_line2, final_line3, final_content, new_version, now))
         conn.commit()
 
         return {
             "id": 1,
-            "line1": line1,
-            "line2": line2,
-            "line3": line3,
-            "content": content,
+            "line1": final_line1,
+            "line2": final_line2,
+            "line3": final_line3,
+            "content": final_content,
             "version": new_version,
             "updated_at": now
         }

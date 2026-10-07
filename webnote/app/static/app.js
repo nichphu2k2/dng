@@ -10,12 +10,27 @@
   const statusText = document.getElementById("statusText");
   const toast = document.getElementById("toast");
 
+  let basePath = window.location.pathname;
+  if (!basePath.endsWith("/")) {
+    basePath = basePath.substring(0, basePath.lastIndexOf("/") + 1);
+  }
+  if (!basePath.endsWith("/")) {
+    basePath += "/";
+  }
+
+  function resolveUrl(relativeUrl) {
+    if (relativeUrl.startsWith("http://") || relativeUrl.startsWith("https://") || relativeUrl.startsWith("data:")) {
+      return relativeUrl;
+    }
+    const cleanRel = relativeUrl.replace(/^\/+/, "");
+    return basePath + cleanRel;
+  }
+
   let currentVersion = 0;
   let ws = null;
   let reconnectTimeout = null;
   let reconnectDelay = 1000;
   let debounceTimer = null;
-  let isFocusedInEditor = false;
 
   function showToast(message, duration = 2000) {
     if (!toast) return;
@@ -88,7 +103,7 @@
         if (el.classList && el.classList.contains("editor-image-item")) {
           const img = el.querySelector("img");
           const imgId = el.dataset.imageId || (img ? img.dataset.imageId : "");
-          const src = img ? img.getAttribute("src") : "";
+          const src = img ? (img.getAttribute("data-raw-src") || img.getAttribute("src")) : "";
           if (imgId && src) {
             blocks.push({ type: "image", id: imgId, src: src });
           }
@@ -97,7 +112,7 @@
 
         if (el.tagName === "IMG") {
           const imgId = el.dataset.imageId || "";
-          const src = el.getAttribute("src") || "";
+          const src = el.getAttribute("data-raw-src") || el.getAttribute("src") || "";
           if (src) {
             blocks.push({ type: "image", id: imgId, src: src });
           }
@@ -134,14 +149,17 @@
     return JSON.stringify({ type: "document", blocks });
   }
 
-  function createImageElement(imageId, src) {
+  function createImageElement(imageId, rawSrc) {
+    const resolvedSrc = resolveUrl(rawSrc);
+
     const wrapper = document.createElement("div");
     wrapper.className = "editor-image-item";
     wrapper.contentEditable = "false";
     wrapper.dataset.imageId = imageId;
 
     const img = document.createElement("img");
-    img.src = src;
+    img.src = resolvedSrc;
+    img.setAttribute("data-raw-src", rawSrc);
     img.dataset.imageId = imageId;
     img.alt = "Pasted image";
     img.loading = "lazy";
@@ -153,19 +171,20 @@
     copyBtn.type = "button";
     copyBtn.className = "btn-img-action";
     copyBtn.textContent = "Copy Image";
+    copyBtn.title = "Sao chép ảnh vào clipboard";
     copyBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      await copyImageToClipboard(src, copyBtn);
+      await copyImageToClipboard(resolvedSrc, copyBtn);
     });
 
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "btn-img-action";
     deleteBtn.textContent = "✕";
+    deleteBtn.title = "Xóa ảnh";
     deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       wrapper.remove();
-      triggerDebouncedUpdate(true);
     });
 
     overlay.appendChild(copyBtn);
@@ -267,18 +286,17 @@
     });
   }
 
-  function sendUpdate() {
+  function sendLinesUpdate() {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
       return;
     }
 
     const payload = {
-      type: "update",
+      type: "update_lines",
       version: currentVersion,
       line1: line1Input.value,
       line2: line2Input.value,
-      line3: line3Input.value,
-      content: serializeEditor(editor)
+      line3: line3Input.value
     };
 
     try {
@@ -288,18 +306,45 @@
     }
   }
 
-  function triggerDebouncedUpdate(immediate = false) {
+  function triggerDebouncedLinesUpdate() {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
       debounceTimer = null;
     }
 
-    if (immediate) {
-      sendUpdate();
-    } else {
-      debounceTimer = setTimeout(() => {
-        sendUpdate();
-      }, 300);
+    debounceTimer = setTimeout(() => {
+      sendLinesUpdate();
+    }, 300);
+  }
+
+  function saveEditorContent() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      showToast("Mất kết nối server, không thể lưu!");
+      return;
+    }
+
+    const payload = {
+      type: "save_editor",
+      version: currentVersion,
+      content: serializeEditor(editor)
+    };
+
+    try {
+      ws.send(JSON.stringify(payload));
+      const btn = document.getElementById("saveEditorBtn");
+      if (btn) {
+        const origText = btn.textContent;
+        btn.textContent = "Saved!";
+        btn.classList.add("saved");
+        setTimeout(() => {
+          btn.textContent = origText;
+          btn.classList.remove("saved");
+        }, 1200);
+      }
+      showToast("Đã lưu nội dung ghi chú!");
+    } catch (err) {
+      console.error(err);
+      showToast("Lỗi khi lưu ghi chú!");
     }
   }
 
@@ -309,7 +354,7 @@
 
     showToast("Đang tải ảnh lên...");
     try {
-      const resp = await fetch("/api/images", {
+      const resp = await fetch(resolveUrl("api/images"), {
         method: "POST",
         body: formData
       });
@@ -320,7 +365,7 @@
       }
 
       const data = await resp.json();
-      showToast("Tải ảnh thành công!");
+      showToast("Tải ảnh thành công! Bấm Save để lưu.");
       return data;
     } catch (err) {
       showToast("Lỗi: " + err.message);
@@ -371,7 +416,6 @@
       if (uploadResult) {
         const imgEl = createImageElement(uploadResult.image_id, uploadResult.src);
         insertImageAtCaret(imgEl);
-        triggerDebouncedUpdate(true);
       }
     }
   });
@@ -389,34 +433,36 @@
         if (uploadResult) {
           const imgEl = createImageElement(uploadResult.image_id, uploadResult.src);
           insertImageAtCaret(imgEl);
-          triggerDebouncedUpdate(true);
         }
       }
     }
   });
 
-  editor.addEventListener("input", () => {
-    triggerDebouncedUpdate(false);
-  });
+    const saveEditorBtn = document.getElementById("saveEditorBtn");
+    if (saveEditorBtn) {
+      saveEditorBtn.addEventListener("click", () => {
+        saveEditorContent();
+      });
+    }
 
-  editor.addEventListener("focus", () => {
-    isFocusedInEditor = true;
-  });
-
-  editor.addEventListener("blur", () => {
-    isFocusedInEditor = false;
-  });
-
-  [line1Input, line2Input, line3Input].forEach((input) => {
-    input.addEventListener("input", () => {
-      triggerDebouncedUpdate(false);
+    editor.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        saveEditorContent();
+      }
     });
-  });
+
+    [line1Input, line2Input, line3Input].forEach((input) => {
+      input.addEventListener("input", () => {
+        triggerDebouncedLinesUpdate();
+      });
+    });
 
   function connectWebSocket() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws`;
+    const wsPath = basePath + "ws";
+    const wsUrl = `${protocol}//${host}${wsPath}`;
 
     setStatus("reconnecting", "Connecting...");
 
@@ -468,6 +514,13 @@
   function handleServerMessage(data) {
     const msgType = data.type;
 
+    if (msgType === "ack") {
+      if (data.version && data.version > currentVersion) {
+        currentVersion = data.version;
+      }
+      return;
+    }
+
     if (msgType === "init" || msgType === "document_update") {
       const serverVersion = data.version || 0;
 
@@ -487,9 +540,16 @@
         line3Input.value = data.line3 || "";
       }
 
-      const currentSerialized = serializeEditor(editor);
-      if (currentSerialized !== data.content) {
+      if (msgType === "init") {
         renderDocument(data.content);
+      } else if (data.content !== undefined) {
+        const isEditing = document.activeElement === editor;
+        if (!isEditing) {
+          const currentSerialized = serializeEditor(editor);
+          if (currentSerialized !== data.content) {
+            renderDocument(data.content);
+          }
+        }
       }
     }
   }

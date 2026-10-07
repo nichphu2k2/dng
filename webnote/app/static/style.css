@@ -122,12 +122,45 @@ body {
 .editor-content {
   flex: 1;
   padding: 16px;
+  padding-bottom: 50px;
   outline: none;
   font-size: 16px;
   line-height: 1.6;
   overflow-y: auto;
   word-break: break-word;
   color: var(--text-main);
+}
+
+.btn-save-editor {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 6px 16px;
+  background: var(--btn-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+
+.btn-save-editor:hover {
+  background: #f3f4f6;
+  border-color: #8c959f;
+}
+
+.btn-save-editor:active {
+  background: #e2e7ec;
+}
+
+.btn-save-editor.saved {
+  background: #dafbe1;
+  color: var(--success-color);
+  border-color: #aceebb;
 }
 
 .editor-content[data-placeholder]:empty:before {

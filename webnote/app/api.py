@@ -56,7 +56,7 @@ async def upload_image(file: UploadFile = File(...)):
 
     return ImageUploadResponse(
         image_id=image_id,
-        src=f"/api/images/{image_id}",
+        src=f"api/images/{image_id}",
         filename=filename,
         mime_type=mime_type,
         size=len(content)

@@ -17,9 +17,11 @@ class ConnectionManager:
         self.active_connections.discard(websocket)
         logger.info(f"WebSocket client disconnected. Total clients: {len(self.active_connections)}")
 
-    async def broadcast(self, message: dict, sender: WebSocket | None = None):
+    async def broadcast(self, message: dict, exclude: WebSocket | None = None):
         dead_connections = []
         for connection in list(self.active_connections):
+            if connection == exclude:
+                continue
             try:
                 await connection.send_json(message)
             except Exception as e:
