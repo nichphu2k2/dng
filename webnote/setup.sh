@@ -6,7 +6,7 @@ cd "$APP_DIR"
 
 CONTAINER_NAME="webnote"
 IMAGE_NAME="webnote"
-PORT=80
+PORT=8080
 DATA_DIR="${APP_DIR}/data"
 
 mkdir -p "${DATA_DIR}/images"

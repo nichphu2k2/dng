@@ -47,7 +47,12 @@ def generate_webhook_url(request: Request) -> str:
         # Strip standard HTTP :80
         if host.endswith(":80"):
             host = host[:-3]
-        return f"{proto}://{host}/api/webhook/senturian"
+
+        prefix = (request.headers.get("x-forwarded-prefix") or "").strip().rstrip("/")
+        if not prefix and "/senturian" in request.headers.get("referer", ""):
+            prefix = "/senturian"
+
+        return f"{proto}://{host}{prefix}/api/webhook/senturian"
 
     lan_ip = get_host_lan_ip()
     port = int(os.getenv("PORT", "8000"))

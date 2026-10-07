@@ -172,13 +172,17 @@
 
     const CHANNELS_LIST = Object.keys(CHANNEL_CONFIG);
 
-    // Automatically generate dynamic Webhook URL based on caller host/port
+    // Detect base path prefix (e.g., '' when at root, or '/senturian' when reverse proxied)
+    const BASE_PATH = window.location.pathname.startsWith("/senturian") ? "/senturian" : "";
+    const API_BASE = `${BASE_PATH}/api`;
+
+    // Automatically generate dynamic Webhook URL based on caller host/port and path prefix
     const getDynamicWebhookUrl = () => {
       const protocol = window.location.protocol || "http:";
       const host = window.location.hostname || "127.0.0.1";
       const port = window.location.port;
       const portStr = (port && port !== "80" && port !== "443") ? `:${port}` : "";
-      return `${protocol}//${host}${portStr}/api/webhook/senturian`;
+      return `${protocol}//${host}${portStr}${API_BASE}/webhook/senturian`;
     };
 
     // Cross-browser clipboard copy with fallback for non-secure HTTP contexts
@@ -276,7 +280,7 @@
       // Function to reload rules directly from backend database
       const refreshRulesFromBackend = async () => {
         try {
-          const rRes = await fetch("/api/rules");
+          const rRes = await fetch(`${API_BASE}/rules`);
           if (rRes.ok) {
             const rData = await rRes.json();
             if (Array.isArray(rData)) {
@@ -295,7 +299,7 @@
         const fetchInitialData = async () => {
           try {
             // 1. Fetch settings & success count
-            const sRes = await fetch("/api/settings");
+            const sRes = await fetch(`${API_BASE}/settings`);
             if (sRes.ok) {
               const sData = await sRes.json();
               setSettings(prev => ({
@@ -322,7 +326,7 @@
         // Periodic polling to update successRecords live when events are forwarded
         const intervalId = setInterval(async () => {
           try {
-            const res = await fetch("/api/settings");
+            const res = await fetch(`${API_BASE}/settings`);
             if (res.ok) {
               const data = await res.json();
               if (data.success_records !== undefined) {
@@ -374,7 +378,7 @@
         try {
           if (editingRule) {
             const updated = { ...ruleData, id: editingRule.id };
-            const res = await fetch(`/api/rules/${editingRule.id}`, {
+            const res = await fetch(`${API_BASE}/rules/${editingRule.id}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(updated)
@@ -386,7 +390,7 @@
               showToast("Failed to update rule in database!", "error");
             }
           } else {
-            const res = await fetch("/api/rules", {
+            const res = await fetch(`${API_BASE}/rules`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(ruleData)
@@ -407,7 +411,7 @@
 
       const handleDeleteRule = async (rule) => {
         try {
-          const res = await fetch(`/api/rules/${rule.id}`, { method: "DELETE" });
+          const res = await fetch(`${API_BASE}/rules/${rule.id}`, { method: "DELETE" });
           if (res.ok) {
             await refreshRulesFromBackend();
             showToast(`Rule "${rule.name}" deleted!`, "info");
@@ -422,7 +426,7 @@
 
       const handleToggleStatus = async (ruleId) => {
         try {
-          const res = await fetch(`/api/rules/${ruleId}/toggle`, { method: "PATCH" });
+          const res = await fetch(`${API_BASE}/rules/${ruleId}/toggle`, { method: "PATCH" });
           if (res.ok) {
             const updated = await res.json();
             await refreshRulesFromBackend();
@@ -1516,7 +1520,7 @@
 
         setTesting(true);
         try {
-          const res = await fetch("/api/settings/nx/test", {
+          const res = await fetch(`${API_BASE}/settings/nx/test`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1549,7 +1553,7 @@
           vmsPort: Number(vmsPort)
         };
         try {
-          await fetch("/api/settings", {
+          await fetch(`${API_BASE}/settings`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
