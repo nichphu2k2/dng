@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment files
+# .env
+
+# Log files
+*.log
+
+# Package / Binary distribution files
+*.deb
+*.rpm
+*.iso
+*.tar
+*.gz
+*.zip
+*.7z
+
+# Database / local data files
+*.db
+*.sqlite
+*.sqlite3
+
+# Node dependencies
+node_modules/
+dist/
+build/

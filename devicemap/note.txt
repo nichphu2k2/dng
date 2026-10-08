@@ -1,0 +1,52 @@
+Để mở port cần:
+    - Mở port 80/TCP
+    - Mở port 8189/UDP
+    - Đổi IP pulic ở mediamtx/mediamtx.yml (webrtcAdditionalHosts)
+
+
+User/Password mặc định: admin/admin
+
+Kiểm tra các luồng RTSP mà mediamtx đang có:
+curl -s http://127.0.0.1/mediamtx/api/v3/paths/list | jq
+
+RTSP:  rtsp://192.168.1.11:8554/00001_2
+
+
+
+Cài đặt bằng devicemap.deb (yêu cầu máy đã cài Docker) 
+
+sudo dpkg -i devicemap.deb
+# hoặc
+sudo apt install ./devicemap.deb
+
+
+Các lệnh tiện ích quản trị sau khi cài đặt
+
+Sau khi cài đặt xong bằng file .deb, bạn có thể quản trị hệ thống nhanh bằng các lệnh sau ở bất kỳ thư mục nào:
+
+devicemap-status: Xem trạng thái hoạt động của 4 container (Nginx, Backend, MySQL, MediaMTX).
+devicemap-set-port: Đổi port cho Web bất kỳ lúc nào mà không cần nhớ đường dẫn thư mục.
+devicemap-set-stream: Đổi IP/domain WebRTC MediaMTX.
+devicemap-restart: Khởi động lại toàn bộ hệ thống DeviceMap.
+devicemap-logs: Xem log trực tiếp của các container.
+
+
+
+
+Gỡ sạch devicemap.deb
+Bước 1: Gỡ sạch cấu hình package
+
+bash
+sudo dpkg -P devicemap
+# hoặc
+sudo apt purge devicemap
+
+Bước 2: Xóa sạch thư mục dữ liệu
+
+bash
+sudo rm -rf /opt/devicemap
+
+Bước 3: (Tùy chọn) Xóa các Docker Image đã nạp để giải phóng dung lượng ổ cứng
+
+bash
+docker rmi devicemap-nginx:latest devicemap-backend:latest mysql:8.0 bluenviron/mediamtx:latest

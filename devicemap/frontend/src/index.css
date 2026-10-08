@@ -1,0 +1,1777 @@
+/* =========================================================
+   THEME / COLOR SYSTEM
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  font-family:
+    Inter,
+    Roboto,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  /* =======================================================
+     GLOBAL
+     ======================================================= */
+
+  --bg-page: #f3f4f6;
+  --bg-main: #f8fafc;
+  --bg-gradient-start: #f8fafc;
+  --bg-gradient-end: #eef2f7;
+
+  /* =======================================================
+     SURFACE
+     ======================================================= */
+
+  --surface: #ffffff;
+  --surface-soft: #fafafa;
+  --surface-hover: #f3f4f6;
+  --surface-active: #d5dae3;
+  --surface-disabled: #f5f5f5;
+
+  /* =======================================================
+     TEXT
+     ======================================================= */
+
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-disabled: #9ca3af;
+  --text-white: #ffffff;
+
+  /* =======================================================
+     BORDER
+     ======================================================= */
+
+  --border: #e5e7eb;
+  --border-light: #f1f5f9;
+  --border-strong: #d1d5db;
+
+  /* =======================================================
+     PRIMARY
+     ======================================================= */
+
+  --primary: #4f46e5;
+  --primary-soft: #eef2ff;
+
+  /* =======================================================
+     STATUS
+     ======================================================= */
+
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.18);
+
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+
+  --info: #3b82f6;
+  --info-soft: #eff6ff;
+
+  /* =======================================================
+     SIDEBAR
+     ======================================================= */
+
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+
+  /* =======================================================
+     TOPBAR
+     ======================================================= */
+
+  --topbar-bg: rgba(255, 255, 255, 0.95);
+  --topbar-border: #e5e7eb;
+
+  /* =======================================================
+     BUTTON
+     ======================================================= */
+
+  --button-bg: #f3f4f6;
+  --button-hover-bg: #e5e7eb;
+  --button-text: #111827;
+
+  /* =======================================================
+     INPUT
+     ======================================================= */
+
+  --input-bg: #ffffff;
+  --input-border: #d9d9d9;
+  --input-text: #111827;
+  --input-placeholder: #9ca3af;
+
+  /* =======================================================
+     CARD
+     ======================================================= */
+
+  --card-bg: #ffffff;
+  --card-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+
+  /* =======================================================
+     DROPDOWN
+     ======================================================= */
+
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #e5e7eb;
+  --dropdown-item-bg: #f9fafb;
+
+  /* =======================================================
+     HERO
+     ======================================================= */
+
+  --hero-bg-start: #ffffff;
+  --hero-bg-end: #eef2ff;
+
+  /* =======================================================
+     SCROLLBAR
+     ======================================================= */
+
+  --scrollbar-thumb: #cbd5e1;
+
+  /* =======================================================
+     FLASH / DEVICE ALERT
+     ======================================================= */
+
+  --flash-color-1: #3dbbff;
+  --flash-color-2: #ff4d4f;
+
+  /* =======================================================
+     DELETE BUTTON
+     ======================================================= */
+
+  --delete-disabled-text: rgb(237 17 17 / 40%);
+  --delete-disabled-bg: rgba(0, 0, 0, 0.04);
+
+  /* =======================================================
+     SHADOW
+     ======================================================= */
+
+  --shadow-soft: 0 10px 30px rgba(17, 24, 39, 0.06);
+  --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-notification: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  color: var(--text-primary);
+
+  background: linear-gradient(
+    135deg,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-end) 100%
+  );
+}
+
+button,
+a {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+
+/* =========================================================
+   APP SHELL
+   ========================================================= */
+
+.app-shell {
+  display: flex;
+
+  height: 100vh;
+  overflow: hidden;
+
+  background: var(--bg-page);
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+
+  padding: 16px 12px;
+
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  transition: none;
+}
+
+.sidebar.hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+
+  padding: 0 !important;
+
+  border-right: none !important;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR HEADER / FOOTER
+   ========================================================= */
+
+.sidebar-header,
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+.sidebar-header {
+  flex-direction: column;
+
+  margin-bottom: 6px;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand-mark {
+  width: 50%;
+  height: 92%;
+
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  background: var(--text-primary);
+
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+/* =========================================================
+   ICON BUTTON
+   ========================================================= */
+
+.icon-button {
+  border: none;
+
+  background: var(--button-bg);
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--button-text);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.icon-button:hover {
+  background: var(--button-hover-bg);
+
+  transform: translateY(-1px);
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  fill: none;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-button.ghost {
+  background: transparent;
+}
+
+
+/* =========================================================
+   SIDEBAR MENU
+   ========================================================= */
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  margin-top: 0;
+}
+
+
+/* =========================================================
+   MENU LINK
+   ========================================================= */
+
+.menu-link {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border-radius: 12px;
+
+  padding: 10px;
+  padding-left: 14px;
+
+  text-decoration: none;
+
+  color: var(--text-primary);
+
+  font-weight: 600;
+
+  background: var(--surface-soft);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.menu-link:hover {
+  background: var(--surface-hover);
+}
+
+.menu-link.active {
+  background: var(--surface-active);
+
+  color: var(--text-primary);
+}
+
+.menu-link.icon-only {
+  justify-content: center;
+}
+
+
+/* =========================================================
+   MENU GROUP
+   ========================================================= */
+
+.menu-group {
+  border-radius: 12px;
+
+  background: var(--surface-soft);
+
+  padding: 6px;
+}
+
+.menu-group.active {
+  background: var(--surface-hover);
+}
+
+.menu-group-toggle {
+  width: 100%;
+
+  border: none;
+
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 8px 10px;
+
+  color: var(--text-primary);
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  border-radius: 8px;
+}
+
+.menu-group-toggle:hover {
+  background: var(--surface-hover);
+}
+
+.menu-group.active .menu-group-toggle {
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   MENU GROUP TITLE
+   ========================================================= */
+
+.menu-group-title {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   MENU ICON
+   ========================================================= */
+
+.menu-icon {
+  width: 20px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.menu-icon svg {
+  width: 18px;
+  height: 18px;
+
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  fill: none;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+/* =========================================================
+   MENU LABEL
+   ========================================================= */
+
+.menu-label {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   CHEVRON
+   ========================================================= */
+
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   SUBMENU
+   ========================================================= */
+
+.submenu {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 4px 4px 6px 32px;
+}
+
+
+/* =========================================================
+   MENU ITEM
+   ========================================================= */
+
+.menu-item {
+  display: block;
+
+  padding: 9px 10px;
+
+  color: var(--text-secondary);
+
+  text-decoration: none;
+
+  border-radius: 8px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.menu-item:hover {
+  background: var(--surface-hover);
+
+  color: var(--text-primary);
+}
+
+.menu-item.active {
+  background: var(--surface-active);
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   SIDEBAR FOOTER
+   ========================================================= */
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 0.85rem;
+
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  background: var(--success);
+
+  box-shadow:
+    0 0 0 4px var(--success-soft);
+}
+
+
+/* =========================================================
+   DEVICE STATUS DOT
+   ========================================================= */
+
+.device-status-dot .ant-badge-status-dot {
+  width: 10px !important;
+  height: 10px !important;
+
+  border-radius: 50% !important;
+}
+
+
+/* =========================================================
+   SIDEBAR RESIZER
+   ========================================================= */
+
+.sidebar-resizer {
+  width: 6px;
+
+  cursor: col-resize;
+
+  background: transparent;
+}
+
+
+/* =========================================================
+   MAIN PANEL
+   ========================================================= */
+
+.main-panel {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  height: 100vh;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.topbar {
+  height: 68px;
+
+  background: var(--topbar-bg);
+
+  border-bottom: 1px solid var(--topbar-border);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 22px;
+
+  position: sticky;
+  top: 0;
+
+  z-index: 1;
+
+  backdrop-filter: blur(8px);
+}
+
+.topbar-left,
+.topbar-right {
+  flex: 1;
+}
+
+.topbar-right {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-right: 100px;
+}
+
+.topbar-center {
+  flex: 2;
+
+  text-align: center;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  color: var(--text-primary);
+
+  letter-spacing: 0.02em;
+}
+
+
+/* =========================================================
+   NOTIFICATION
+   ========================================================= */
+
+.notification-button-wrap {
+  position: fixed;
+
+  top: 14px;
+  right: 22px;
+
+  z-index: 11990;
+}
+
+.theme-mode-wrap {
+  position: fixed;
+
+  top: 14px;
+  right: 70px;
+
+  z-index: 11990;
+}
+
+.notification-dropdown-wrap {
+  position: fixed;
+
+  top: 64px;
+  right: 22px;
+
+  z-index: 12010;
+}
+
+.badge {
+  position: absolute;
+
+  top: -2px;
+  right: -2px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  background: var(--danger);
+
+  color: var(--text-white);
+
+  font-size: 0.7rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-dropdown {
+  width: 280px;
+
+  background: var(--dropdown-bg);
+
+  border: 1px solid var(--dropdown-border);
+
+  border-radius: 14px;
+
+  box-shadow: var(--shadow-notification);
+
+  padding: 8px;
+}
+
+.ant-modal-content {
+  position: relative;
+
+  z-index: 12000;
+}
+
+.notification-list {
+  max-height: 186px;
+
+  overflow-y: auto;
+
+  padding-right: 2px;
+}
+
+.notification-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding: 6px 4px 2px;
+
+  border-top: 1px solid var(--border);
+}
+
+.dropdown-header {
+  padding: 8px 10px 10px;
+
+  font-weight: 700;
+
+  color: var(--text-primary);
+}
+
+.dropdown-item {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  padding: 10px;
+
+  border-radius: 10px;
+
+  background: var(--dropdown-item-bg);
+
+  margin-bottom: 8px;
+}
+
+.dropdown-item span {
+  color: var(--text-muted);
+
+  font-size: 0.84rem;
+}
+
+
+/* =========================================================
+   NOTIFICATION ALERT
+   ========================================================= */
+
+.notification-alert-item {
+  flex-direction: row;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.notification-alert-item:hover {
+  background: var(--surface-hover);
+}
+
+.notification-alert-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.notification-book-btn {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 8px;
+
+  border: 1px solid var(--border-strong);
+
+  background: var(--surface);
+
+  cursor: pointer;
+
+  color: var(--text-secondary);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-book-btn:hover {
+  background: var(--surface-hover);
+}
+
+
+/* =========================================================
+   DELETE PLACEMENT BUTTON
+   ========================================================= */
+
+.delete-placement-btn.ant-btn-dangerous:disabled {
+  cursor: not-allowed;
+
+  border-color: var(--border);
+
+  color: var(--delete-disabled-text);
+
+  background: var(--delete-disabled-bg);
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   DEVICE MAP FLASH
+   ========================================================= */
+
+@keyframes devicemapFlash {
+  0% {
+    background: var(
+      --flash-color-1,
+      #3dbbff
+    );
+  }
+
+  50% {
+    background: var(
+      --flash-color-2,
+      #ff4d4f
+    );
+  }
+
+  100% {
+    background: var(
+      --flash-color-1,
+      #3dbbff
+    );
+  }
+}
+
+
+/* =========================================================
+   DEVICE ICON SWITCH
+   ========================================================= */
+
+.device-icon-switch {
+  position: relative;
+
+  width: var(
+    --device-icon-size,
+    24px
+  );
+
+  height: var(
+    --device-icon-size,
+    24px
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.device-icon-switch img {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+
+/* =========================================================
+   DEVICE ICON STATES
+   ========================================================= */
+
+.device-icon-primary {
+  opacity: 1;
+}
+
+.device-icon-secondary {
+  opacity: 0;
+}
+
+
+/* =========================================================
+   DEVICE ICON FLASH
+   ========================================================= */
+
+.device-icon-switch.flashing .device-icon-primary {
+  animation:
+    iconFlashPrimary
+    var(--flash-duration, 1s)
+    linear
+    infinite;
+}
+
+.device-icon-switch.flashing .device-icon-secondary {
+  animation:
+    iconFlashSecondary
+    var(--flash-duration, 1s)
+    linear
+    infinite;
+}
+
+
+@keyframes iconFlashPrimary {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes iconFlashSecondary {
+  0%,
+  49% {
+    opacity: 0;
+  }
+
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   USER
+   ========================================================= */
+
+.user-name {
+  font-size: 13px;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================================
+   USER MENU
+   ========================================================= */
+
+.user-menu-wrap {
+  position: relative;
+}
+
+.user-avatar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  border-radius: 50%;
+}
+
+.user-avatar-button:hover {
+  opacity: 0.85;
+}
+
+.user-dropdown {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  right: 0;
+
+  z-index: 1200;
+
+  min-width: 220px;
+
+  padding: 14px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  border-radius: 10px;
+
+  box-shadow: var(--shadow-dropdown);
+}
+
+.user-dropdown-name {
+  font-weight: 600;
+
+  font-size: 14px;
+
+  color: var(--text-primary);
+
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.main-content {
+  flex: 1;
+
+  padding: 22px;
+
+  overflow: auto;
+
+  background: transparent;
+}
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+/* =========================================================
+   PAGE HERO
+   ========================================================= */
+
+.page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 24px 28px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    135deg,
+    var(--hero-bg-start) 0%,
+    var(--hero-bg-end) 100%
+  );
+
+  box-shadow: var(--shadow-soft);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+
+  font-size: 0.8rem;
+
+  letter-spacing: 0.24em;
+
+  text-transform: uppercase;
+
+  color: var(--primary);
+
+  font-weight: 700;
+}
+
+.page-hero h1 {
+  margin: 0 0 8px;
+
+  font-size: 1.6rem;
+
+  color: var(--text-primary);
+}
+
+.page-hero p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  max-width: 720px;
+}
+
+
+/* =========================================================
+   HERO BADGE
+   ========================================================= */
+
+.hero-badge {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  padding: 14px 16px;
+
+  border-radius: 14px;
+
+  background: var(--surface-soft);
+
+  color: var(--text-secondary);
+}
+
+.hero-badge-title {
+  font-weight: 700;
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.widget-grid,
+.content-grid {
+  display: grid;
+
+  gap: 16px;
+}
+
+.widget-grid {
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+}
+
+.content-grid {
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.stat-card,
+.info-card {
+  border-radius: 16px;
+
+  padding: 18px 20px;
+
+  background: var(--card-bg);
+
+  box-shadow: var(--card-shadow);
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   STAT CARD COLORS
+   ========================================================= */
+
+.stat-card.blue {
+  background: linear-gradient(
+    135deg,
+    #eff6ff 0%,
+    #dbeafe 100%
+  );
+}
+
+.stat-card.red {
+  background: linear-gradient(
+    135deg,
+    #fef2f2 0%,
+    #fee2e2 100%
+  );
+}
+
+.stat-card.green {
+  background: linear-gradient(
+    135deg,
+    #ecfdf5 0%,
+    #d1fae5 100%
+  );
+}
+
+.stat-card.purple {
+  background: linear-gradient(
+    135deg,
+    #f5f3ff 0%,
+    #ede9fe 100%
+  );
+}
+
+
+/* =========================================================
+   STAT TEXT
+   ========================================================= */
+
+.stat-label {
+  color: var(--text-muted);
+
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   INFO CARD
+   ========================================================= */
+
+.info-card h3 {
+  margin: 0 0 10px;
+}
+
+.info-card p,
+.info-card li {
+  color: var(--text-muted);
+}
+
+.info-card ul {
+  margin: 10px 0 0;
+
+  padding-left: 18px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   SIDEBAR SCROLLBAR
+   ========================================================= */
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   DARK THEME
+   ========================================================= */
+
+body.theme-dark {
+
+  color-scheme: dark;
+
+  /* =======================================================
+     GLOBAL
+     ======================================================= */
+
+  --bg-page: #0b1220;
+
+  --bg-main: #0b1220;
+
+  --bg-gradient-start: #020617;
+  --bg-gradient-end: #0f172a;
+
+
+  /* =======================================================
+     SURFACE
+     ======================================================= */
+
+  --surface: #1f2937;
+  --surface-soft: #1f2937;
+
+  --surface-hover: #334155;
+
+  --surface-active: #0f172a;
+
+  --surface-disabled: #374151;
+
+
+  /* =======================================================
+     TEXT
+     ======================================================= */
+
+  --text-primary: #e2e8f0;
+
+  --text-secondary: #cbd5e1;
+
+  --text-muted: #94a3b8;
+
+  --text-disabled: #64748b;
+
+
+  /* =======================================================
+     BORDER
+     ======================================================= */
+
+  --border: #334155;
+
+  --border-light: #1f2937;
+
+  --border-strong: #475569;
+
+
+  /* =======================================================
+     PRIMARY
+     ======================================================= */
+
+  --primary: #818cf8;
+
+  --primary-soft: #312e81;
+
+
+  /* =======================================================
+     STATUS
+     ======================================================= */
+
+  --success: #22c55e;
+
+  --success-soft: rgba(34, 197, 94, 0.18);
+
+  --danger: #ef4444;
+
+  --danger-soft: #450a0a;
+
+  --warning: #fbbf24;
+
+  --warning-soft: #451a03;
+
+  --info: #60a5fa;
+
+  --info-soft: #172554;
+
+
+  /* =======================================================
+     SIDEBAR
+     ======================================================= */
+
+  --sidebar-bg: #111827;
+
+  --sidebar-border: #1f2937;
+
+
+  /* =======================================================
+     TOPBAR
+     ======================================================= */
+
+  --topbar-bg: rgba(15, 23, 42, 0.96);
+
+  --topbar-border: #1f2937;
+
+
+  /* =======================================================
+     BUTTON
+     ======================================================= */
+
+  --button-bg: #111827;
+
+  --button-hover-bg: #334155;
+
+  --button-text: #e2e8f0;
+
+
+  /* =======================================================
+     INPUT
+     ======================================================= */
+
+  --input-bg: #111827;
+
+  --input-border: #334155;
+
+  --input-text: #e2e8f0;
+
+  --input-placeholder: #64748b;
+
+
+  /* =======================================================
+     CARD
+     ======================================================= */
+
+  --card-bg: #1f2937;
+
+
+  /* =======================================================
+     DROPDOWN
+     ======================================================= */
+
+  --dropdown-bg: #1f2937;
+
+  --dropdown-border: #334155;
+
+  --dropdown-item-bg: #111827;
+
+
+  /* =======================================================
+     HERO
+     ======================================================= */
+
+  --hero-bg-start: #1f2937;
+
+  --hero-bg-end: #172554;
+
+
+  /* =======================================================
+     SCROLLBAR
+     ======================================================= */
+
+  --scrollbar-thumb: #475569;
+
+
+  /* =======================================================
+     DELETE
+     ======================================================= */
+
+  --delete-disabled-text: rgba(248, 113, 113, 0.45);
+
+  --delete-disabled-bg: rgba(255, 255, 255, 0.04);
+}
+
+
+/* =========================================================
+   DARK THEME - BASE
+   ========================================================= */
+
+body.theme-dark {
+  color: var(--text-primary);
+
+  background: linear-gradient(
+    135deg,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-end) 100%
+  );
+}
+
+
+/* =========================================================
+   DARK THEME - APP
+   ========================================================= */
+
+body.theme-dark .app-shell {
+  background: var(--bg-page);
+}
+
+
+/* =========================================================
+   DARK THEME - SIDEBAR
+   ========================================================= */
+
+body.theme-dark .sidebar {
+  background: var(--sidebar-bg);
+
+  border-right-color: var(--sidebar-border);
+}
+
+
+/* =========================================================
+   DARK THEME - TOPBAR
+   ========================================================= */
+
+body.theme-dark .topbar {
+  background: var(--topbar-bg);
+
+  border-bottom-color: var(--topbar-border);
+}
+
+
+/* =========================================================
+   DARK THEME - TEXT
+   ========================================================= */
+
+body.theme-dark .topbar-center,
+body.theme-dark .status-pill,
+body.theme-dark .menu-link,
+body.theme-dark .menu-item,
+body.theme-dark .dropdown-header,
+body.theme-dark .notification-alert-content,
+body.theme-dark .stat-label,
+body.theme-dark .stat-value,
+body.theme-dark .page-hero h1,
+body.theme-dark .page-hero p,
+body.theme-dark .hero-badge-title,
+body.theme-dark .info-card h3,
+body.theme-dark .info-card p,
+body.theme-dark .info-card li {
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   DARK THEME - MENU
+   ========================================================= */
+
+body.theme-dark .menu-link,
+body.theme-dark .menu-group,
+body.theme-dark .menu-item,
+body.theme-dark .hero-badge,
+body.theme-dark .stat-card,
+body.theme-dark .info-card,
+body.theme-dark .notification-dropdown,
+body.theme-dark .dropdown-item,
+body.theme-dark .page-hero {
+  background: var(--surface);
+
+  color: var(--text-primary);
+}
+
+body.theme-dark .menu-link.active,
+body.theme-dark .menu-item.active {
+  background: var(--surface-active);
+}
+
+body.theme-dark .menu-group.active {
+  background: var(--surface-hover);
+}
+
+body.theme-dark .menu-group-toggle {
+  color: var(--text-primary);
+}
+
+body.theme-dark .menu-group.active .menu-group-toggle {
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   DARK THEME - HOVER
+   ========================================================= */
+
+body.theme-dark .icon-button:hover,
+body.theme-dark .menu-group-toggle:hover,
+body.theme-dark .notification-book-btn:hover,
+body.theme-dark .menu-link:hover,
+body.theme-dark .menu-item:hover,
+body.theme-dark .notification-alert-item:hover {
+  background: var(--surface-hover);
+}
+
+
+/* =========================================================
+   DARK THEME - ICON BUTTON
+   ========================================================= */
+
+body.theme-dark .icon-button,
+body.theme-dark .notification-book-btn {
+  background: var(--button-bg);
+
+  color: var(--button-text);
+
+  border-color: var(--border-strong);
+}
+
+body.theme-dark .icon-button svg {
+  stroke: var(--text-primary);
+}
+
+
+/* =========================================================
+   DARK THEME - NOTIFICATION
+   ========================================================= */
+
+body.theme-dark .notification-actions {
+  border-top-color: var(--border);
+}
+
+body.theme-dark .dropdown-item span {
+  color: var(--text-muted);
+}
+
+body.theme-dark .eyebrow {
+  color: var(--primary);
+}
+
+
+/* =========================================================
+   DARK THEME - USER
+   ========================================================= */
+
+body.theme-dark .user-name {
+  color: #f1f5f9;
+}
+
+body.theme-dark .user-dropdown {
+  background: var(--surface);
+
+  border-color: var(--border);
+
+  color: var(--text-primary);
+}
+
+body.theme-dark .user-dropdown-name {
+  color: var(--text-primary);
+
+  border-bottom-color: var(--border);
+}
+
+body.theme-dark .user-dropdown .ant-btn {
+  background: #111827;
+
+  border-color: var(--border-strong);
+
+  color: var(--text-primary);
+}
+
+body.theme-dark .user-dropdown .ant-btn:hover {
+  background: var(--surface-hover);
+
+  border-color: #475569;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   RESPONSIVE - 1024
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .widget-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE - 900
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .page-hero {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .topbar-center {
+    display: none;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE - 760
+   ========================================================= */
+
+@media (max-width: 760px) {
+  .sidebar {
+    box-shadow:
+      0 10px 35px rgba(15, 23, 42, 0.2);
+  }
+
+  .sidebar-resizer {
+    display: none;
+  }
+
+  .widget-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE - USER
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
+}
