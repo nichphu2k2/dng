@@ -1,9 +1,0 @@
-node_modules
-**/node_modules
-.git
-frontend/dist
-backend/node_modules
-uploads
-devicemap
-mediamtx_record
-*.log
